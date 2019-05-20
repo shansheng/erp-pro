@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.mes.mesworkshift.mapper.MesWorkshiftUserMapper">
+    
+	<sql id="mesWorkshiftUserColumns">
+		a.id AS "id",
+		a.mes_workshift_id AS "mesWorkshiftId",
+		a.sys_user_id AS "sysUserId",
+		a.item_01 AS "item01",
+		a.item_02 AS "item02",
+		a.item_03 AS "item03",
+		a.item_04 AS "item04",
+		a.item_05 AS "item05",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag",
+		su.id AS "sysUserId",
+		su.login_name AS "loginName",
+		su.name AS "sysUserName"
+	</sql>
+	
+	<sql id="mesWorkshiftUserJoins">
+		LEFT JOIN mes_workshift b ON b.id = a.mes_workshift_id
+		LEFT JOIN sys_user su ON a.sys_user_id=su.id
+	</sql>
+	
+    
+	
+	<select id="getMesWorkshiftUser" resultType="MesWorkshiftUser">
+	SELECT 
+			<include refid="mesWorkshiftUserColumns"/>
+		FROM mes_workshift_user a
+		WHERE a.mes_workshift_id = #{mesWorkshiftId}
+	
+	</select>
+	
+	<select id="findSubList" resultType="MesWorkshiftUser" >
+		SELECT 
+			meu.id  as "id",
+		    meu.mes_workshift_id as "mesWorkshiftId",
+			su.id AS "sysUserId",
+			su.login_name AS "loginName",
+			su.name AS "sysUserName"
+		FROM sys_user su
+		JOIN mes_workshift_user meu ON su.id = meu.sys_user_id	
+		<where>
+			su.del_flag = #{DEL_FLAG_NORMAL}
+			<if test="mesWorkshiftId != null and mesWorkshiftId != ''">
+				and meu.mes_workshift_id = #{mesWorkshiftId}
+			</if>
+		</where>
+				ORDER BY su.id
+	
+	</select>
+	
+	<select id="selectUser" resultType="MesWorkshiftUser">
+	select 
+	mes_workshift_id,
+	sys_user_id 
+	from mes_workshift_user
+	where mes_workshift_id=#{mesWorkshiftId} 
+	and sys_user_id =#{sysUserId}
+	</select>
+	
+	<select id="get" resultType="MesWorkshiftUser" >
+		SELECT 
+			<include refid="mesWorkshiftUserColumns"/>
+		FROM mes_workshift_user a
+		<include refid="mesWorkshiftUserJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findUser" resultType="MesWorkshiftUser" >
+		SELECT 
+			<include refid="mesWorkshiftUserColumns"/>
+		FROM mes_workshift_user a
+		<include refid="mesWorkshiftUserJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			${dataScope}
+			<if test="id != null and id != ''">
+				AND a.mes_workshift_id = #{id}
+			</if>
+			
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.create_date ASC
+			</otherwise>
+		</choose>
+	</select>
+	
+		<select id="findList" resultType="MesWorkshiftUser" >
+		SELECT 
+			<include refid="mesWorkshiftUserColumns"/>
+		FROM mes_workshift_user a
+		<include refid="mesWorkshiftUserJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			${dataScope}
+			<if test="mesWorkshiftId != null and mesWorkshiftId != ''">
+				AND a.mes_workshift_id = #{mesWorkshiftId}
+			</if>
+			<if test="sysUserId != null and sysUserId != ''">
+				AND a.sys_user_id = #{sysUserId}
+			</if>
+			<if test="name != null and name != ''">
+				AND a.name LIKE 
+					<if test="dbName == 'oracle'">'%'||#{name}||'%'</if>
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.create_date ASC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="MesWorkshiftUser" >
+		SELECT 
+			<include refid="mesWorkshiftUserColumns"/>
+		FROM mes_workshift_user a
+		<include refid="mesWorkshiftUserJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			${dataScope}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+	
+		 <selectKey keyProperty="id" resultType="String" order="BEFORE">
+             select sys_guid() from dual
+        </selectKey>
+		INSERT INTO mes_workshift_user(
+			id,
+			mes_workshift_id,
+			sys_user_id,
+			item_01,
+			item_02,
+			item_03,
+			item_04,
+			item_05,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks,
+			del_flag,
+			parent_id,
+			parent_ids,
+			name,
+			sort
+		) VALUES (
+			#{id},
+			#{mesWorkshiftId},
+			#{sysUserId},
+			#{item01},
+			#{item02},
+			#{item03},
+			#{item04},
+			#{item05},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remarks},
+			#{delFlag},
+			#{parent.id},
+			#{parentIds},
+			#{name},
+			#{sort}
+		)
+	</insert>
+	
+    <insert id="saveUsers">
+     <selectKey keyProperty="id" resultType="String" order="BEFORE">
+             select sys_guid() from dual
+        </selectKey>
+		 
+		INSERT INTO mes_workshift_user(
+			id,
+			mes_workshift_id,
+			sys_user_id,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			del_flag
+		) VALUES (
+			#{id},
+			#{mesWorkshiftId},
+			#{sysUserId},
+			#{userId},
+			#{createDate},
+			#{userId},
+			#{updateDate},
+			'0'
+		)
+	</insert>	
+	
+	<update id="update">
+		UPDATE mes_workshift_user SET 	
+			mes_workshift_id = #{mesWorkshiftId},
+			sys_user_id = #{sysUserId},
+			item_01 = #{item01},
+			item_02 = #{item02},
+			item_03 = #{item03},
+			item_04 = #{item04},
+			item_05 = #{item05},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remarks = #{remarks},
+			parent_id = #{parent.id},
+			parent_ids = #{parentIds},
+			name = #{name},
+			sort = #{sort}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM mes_workshift_user
+		<choose>
+			<when test="id !=null and id != ''">
+				WHERE id = #{id}
+			</when>
+			<otherwise>
+				WHERE mes_workshift_id = #{mesWorkshiftId}
+			</otherwise>
+		</choose>
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE mes_workshift_user SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		<choose>
+			<when test="id !=null and id != ''">
+				WHERE id = #{id}
+			</when>
+			<otherwise>
+				WHERE mes_workshift_id = #{mesWorkshiftId}
+			</otherwise>
+		</choose>
+	</update>
+	
+	<delete id="deluser" >
+	delete from mes_workshift_user WHERE id=#{id}
+	</delete>
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="MesWorkshiftUser" statementType="STATEMENT">
+		select * FROM mes_workshift_user  where ${propertyName} = '${value}'
+	</select>
+	
+</mapper>

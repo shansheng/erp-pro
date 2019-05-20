@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.mes.mesworkshift.mapper.MesWorkshiftMapper">
+    
+	<sql id="mesWorkshiftColumns">
+		a.id AS "id",
+		a.workcenter_code AS "workcenterCode",
+		a.workcenter_name AS "workcenterName",
+		a.sys_office_id AS "sysOfficeId",
+		a.item_01 AS "item01",
+		a.item_02 AS "item02",
+		a.item_03 AS "item03",
+		a.item_04 AS "item04",
+		a.item_05 AS "item05",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag",
+		so.name as "sysOfficeName"
+	</sql>
+	
+	<sql id="mesWorkshiftJoins">
+		left join sys_office so on so.id=a.sys_office_id
+	</sql>
+	
+    
+	<select id="get" resultType="MesWorkshift" >
+		SELECT 
+			<include refid="mesWorkshiftColumns"/>
+		FROM mes_workshift a
+		<include refid="mesWorkshiftJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="MesWorkshift" >
+		SELECT 
+			<include refid="mesWorkshiftColumns"/>
+		FROM mes_workshift a
+		<include refid="mesWorkshiftJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			${dataScope}
+			<if test="workcenterCode != null and workcenterCode != ''">
+				AND a.workcenter_code like CONCAT('%', #{workcenterCode}, '%')
+			</if>
+			<if test="workcenterName != null and workcenterName != ''">
+				AND a.workcenter_name like CONCAT('%', #{workcenterName}, '%')
+			</if>
+			<if test="sysOfficeName != null and sysOfficeName != ''">
+				AND so.name = #{sysOfficeName}
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="MesWorkshift" >
+		SELECT 
+			<include refid="mesWorkshiftColumns"/>
+		FROM mes_workshift a
+		<include refid="mesWorkshiftJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			${dataScope}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO mes_workshift(
+			id,
+			workcenter_code,
+			workcenter_name,
+			sys_office_id,
+			item_01,
+			item_02,
+			item_03,
+			item_04,
+			item_05,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks,
+			del_flag
+		) VALUES (
+			#{id},
+			#{workcenterCode},
+			#{workcenterName},
+			#{sysOfficeId},
+			#{item01},
+			#{item02},
+			#{item03},
+			#{item04},
+			#{item05},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remarks},
+			#{delFlag}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE mes_workshift SET 	
+			workcenter_code = #{workcenterCode},
+			workcenter_name = #{workcenterName},
+			sys_office_id = #{sysOfficeId},
+			item_01 = #{item01},
+			item_02 = #{item02},
+			item_03 = #{item03},
+			item_04 = #{item04},
+			item_05 = #{item05},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remarks = #{remarks}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM mes_workshift
+		WHERE id = #{id}
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE mes_workshift SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="MesWorkshift" statementType="STATEMENT">
+		select * FROM mes_workshift  where ${propertyName} = '${value}'
+	</select>
+	
+</mapper>

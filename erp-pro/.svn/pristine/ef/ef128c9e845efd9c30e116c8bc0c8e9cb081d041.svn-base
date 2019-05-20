@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.wms.wmsitemtransaction.mapper.WmsItemTransactionMapper">
+    
+	<sql id="wmsItemTransactionColumns">
+		a.id AS "id",
+		a.transaction_code AS "transactionCode",
+		a.mds_item_id AS "mdsItemId",
+		a.wms_inventory_id AS "wmsInventoryId",
+		a.wms_locator_id AS "wmsLocatorId",
+		a.wms_item_inventory_id AS "wmsItemInventoryId",
+		a.wms_inventory_transaction_id AS "wmsInventoryTransactionId",
+		a.inv_transact_status AS "invTransactStatus",
+		a.print_flag AS "printFlag",
+		a.back_flag AS "backFlag",
+		a.back_transaction_id AS "backTransactionId",
+		a.back_transaction_code AS "backTransactionCode",
+		a.quality_code AS "qualityCode",
+		a.init_qty AS "initQty",
+		a.transaction_qty AS "transactionQty",
+		a.transaction_date AS "transactionDate",
+		a.mds_unit_id AS "mdsUnitId",
+		a.supply_regular_no AS "supplyRegularNo",
+		a.original_order_id AS "originalOrderId",
+		a.original_order_detail_id AS "originalOrderDetailId",
+		a.item_01 AS "item01",
+		a.item_02 AS "item02",
+		a.item_03 AS "item03",
+		a.item_04 AS "item04",
+		a.item_05 AS "item05",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag",
+		b.item_code as "itemCode",
+		b.item_name as "itemName",
+		c.inventory_name as "wmsInventoryName",
+		d.locator_code as "wmsLocatorCode",
+		e.id as "eId",
+		f.code as "code",
+		f.name as "fName"
+		
+	</sql>
+	
+	<sql id="wmsItemTransactionJoins">
+		left join mds_item b on b.id=a.mds_item_id
+		left join wms_inventory c on c.id=a.wms_inventory_id
+		left join wms_locator d on d.id=a.wms_locator_id
+		left join wms_item_inventory e on e.id=a.wms_item_inventory_id
+		left join wms_inv_transaction f on a.wms_inventory_transaction_id=f.code
+	</sql>
+	
+    
+	<select id="get" resultType="WmsItemTransaction" >
+		SELECT 
+			<include refid="wmsItemTransactionColumns"/>
+		FROM wms_item_transaction a
+		<include refid="wmsItemTransactionJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="WmsItemTransaction" >
+		SELECT 
+			<include refid="wmsItemTransactionColumns"/>
+		FROM wms_item_transaction a
+		<include refid="wmsItemTransactionJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			${dataScope}
+			<if test="id != null and id != ''">
+				AND a.id = #{id}
+			</if>
+			<if test="transactionCode != null and transactionCode != ''">
+				AND a.transaction_code like concat(concat('%',#{transactionCode}),'%')
+			</if>
+			<if test="mdsItemId != null and mdsItemId != ''">
+				AND a.mds_item_id = #{mdsItemId}
+			</if>
+			<if test="wmsInventoryId != null and wmsInventoryId != ''">
+				AND a.wms_inventory_id = #{wmsInventoryId}
+			</if>
+			<if test="wmsLocatorId != null and wmsLocatorId != ''">
+				AND a.wms_locator_id = #{wmsLocatorId}
+			</if>
+			<if test="wmsItemInventoryId != null and wmsItemInventoryId != ''">
+				AND a.wms_item_inventory_id = #{wmsItemInventoryId}
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="WmsItemTransaction" >
+		SELECT 
+			<include refid="wmsItemTransactionColumns"/>
+		FROM wms_item_transaction a
+		<include refid="wmsItemTransactionJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			${dataScope}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO wms_item_transaction(
+			id,
+			transaction_code,
+			mds_item_id,
+			wms_inventory_id,
+			wms_locator_id,
+			wms_item_inventory_id,
+			wms_inventory_transaction_id,
+			inv_transact_status,
+			print_flag,
+			back_flag,
+			back_transaction_id,
+			back_transaction_code,
+			quality_code,
+			init_qty,
+			transaction_qty,
+			transaction_date,
+			mds_unit_id,
+			supply_regular_no,
+			original_order_id,
+			original_order_detail_id,
+			item_01,
+			item_02,
+			item_03,
+			item_04,
+			item_05,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks,
+			del_flag
+		) VALUES (
+			#{id},
+			#{transactionCode},
+			#{mdsItemId},
+			#{wmsInventoryId},
+			#{wmsLocatorId},
+			#{wmsItemInventoryId},
+			#{wmsInventoryTransactionId},
+			#{invTransactStatus},
+			#{printFlag},
+			#{backFlag},
+			#{backTransactionId},
+			#{backTransactionCode},
+			#{qualityCode},
+			#{initQty},
+			#{transactionQty},
+			#{transactionDate},
+			#{mdsUnitId},
+			#{supplyRegularNo},
+			#{originalOrderId},
+			#{originalOrderDetailId},
+			#{item01},
+			#{item02},
+			#{item03},
+			#{item04},
+			#{item05},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remarks},
+			#{delFlag}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE wms_item_transaction SET 	
+			transaction_code = #{transactionCode},
+			mds_item_id = #{mdsItemId},
+			wms_inventory_id = #{wmsInventoryId},
+			wms_locator_id = #{wmsLocatorId},
+			wms_item_inventory_id = #{wmsItemInventoryId},
+			wms_inventory_transaction_id = #{wmsInventoryTransactionId},
+			inv_transact_status = #{invTransactStatus},
+			print_flag = #{printFlag},
+			back_flag = #{backFlag},
+			back_transaction_id = #{backTransactionId},
+			back_transaction_code = #{backTransactionCode},
+			quality_code = #{qualityCode},
+			init_qty = #{initQty},
+			transaction_qty = #{transactionQty},
+			transaction_date = #{transactionDate},
+			mds_unit_id = #{mdsUnitId},
+			supply_regular_no = #{supplyRegularNo},
+			original_order_id = #{originalOrderId},
+			original_order_detail_id = #{originalOrderDetailId},
+			item_01 = #{item01},
+			item_02 = #{item02},
+			item_03 = #{item03},
+			item_04 = #{item04},
+			item_05 = #{item05},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remarks = #{remarks}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM wms_item_transaction
+		WHERE id = #{id}
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE wms_item_transaction SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="WmsItemTransaction" statementType="STATEMENT">
+		select * FROM wms_item_transaction  where ${propertyName} = '${value}'
+	</select>
+	
+</mapper>

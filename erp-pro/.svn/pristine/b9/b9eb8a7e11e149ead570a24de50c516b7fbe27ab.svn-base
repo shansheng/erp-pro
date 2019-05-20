@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.mes.selectmesewo.mapper.MesOperationSeqVMapper">
+    
+	<sql id="mesOperationSeqVColumns">
+		a.id AS "id",
+		a.mes_ewo_id AS "mesEwoId",
+		a.mes_route_id AS "mesRouteId",
+		a.operation_seq_no AS "operationSeqNo",
+		a.operation_seq_desc AS "operationSeqDesc",
+		a.operation_seq_no_next AS "operationSeqNoNext",
+		a.mds_operation_type_id AS "mdsOperationTypeId",
+		a.sys_office_id AS "sysOfficeId",
+		a.plan_setup_time AS "planSetupTime",
+		a.plan_run_time AS "planRunTime",
+		a.plan_wait_time AS "planWaitTime",
+		a.plan_move_time AS "planMoveTime",
+		a.plan_buffer_time AS "planBufferTime",
+		a.cost_ration_time AS "costRationTime",
+		a.mds_workcenter_id AS "mdsWorkcenterId",
+		a.key_flag AS "keyFlag",
+		a.move_batch AS "moveBatch",
+		a.balance_batch AS "balanceBatch",
+		a.inventory_flag AS "inventoryFlag",
+		a.avarage_batch_flag AS "avarageBatchFlag",
+		a.subroute_flag AS "subrouteFlag",
+		a.jit_flag AS "jitFlag",
+		a.controlled_flag AS "controlledFlag",
+		a.step_flag AS "stepFlag",
+		a.filter_flag AS "filterFlag",
+		a.neck_flag AS "neckFlag",
+		a.collaborative_flag AS "collaborativeFlag",
+		a.first_item_check_flag AS "firstItemCheckFlag",
+		a.inspect_flag AS "inspectFlag",
+		a.nc_flag AS "ncFlag",
+		a.seq_type AS "seqType",
+		a.need_qty AS "needQty",
+		a.dispatched_qty AS "dispatchedQty",
+		a.can_dispatch_qty AS "canDispatchQty",
+		a.waste_qty AS "sumupWasteQty",
+		a.invertory_qty AS "invertoryQty",
+		a.redo_qty AS "redoQty",
+		a.exceed_qty AS "exceedQty",
+		a.refix_qty AS "refixQty",
+		a.plan_start_date AS "planStartDate",
+		a.plan_end_date AS "planEndDate",
+		a.real_start_date AS "realStartDate",
+		a.real_end_date AS "realEndDate",
+		a.cost_setup_time AS "costSetupTime",
+		a.cost_run_time AS "costRunTime",
+		a.first_seq_pass_flag AS "firstSeqPassFlag",
+		a.seq_status AS "seqStatus",
+		a.seq_status_label AS "seqStatusLable",
+		a.dispatch_user_name AS "dispatchUserName",
+		a.dispatch_date AS "dispatchDate",
+		a.worker_user_id AS "workerUserId",
+		a.worker_user_name AS "workerUserName",
+		a.check_user_name AS "checkUserName",
+		a.check_date AS "checkDate"
+	</sql>
+	
+	
+	<sql id="mesOperationSeqVJoins">
+		
+	</sql>
+	
+    
+	<select id="get" resultType="MesOperationSeqV" >
+		SELECT 
+			<include refid="mesOperationSeqVColumns"/>
+		FROM mes_operation_seq_v a
+		<include refid="mesOperationSeqVJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="MesOperationSeqV" >
+		SELECT 
+			<include refid="mesOperationSeqVColumns"/>
+		FROM mes_operation_seq_v a
+		<include refid="mesOperationSeqVJoins"/>
+		<where>
+		 	a.mes_ewo_id = #{mesEwoId}
+			
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="MesOperationSeqV" >
+		SELECT 
+			<include refid="mesOperationSeqVColumns"/>
+		FROM mes_operation_seq_v a
+		<include refid="mesOperationSeqVJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			${dataScope}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO mes_operation_seq_v(
+			id,
+			mes_ewo_id,
+			mes_route_id,
+			operation_seq_no,
+			operation_seq_desc,
+			operation_seq_no_next,
+			inner_order,
+			mds_operation_type_id,
+			sys_office_id,
+			plan_setup_time,
+			plan_run_time,
+			plan_wait_time,
+			plan_move_time,
+			plan_buffer_time,
+			cost_ration_time,
+			mds_workcenter_id,
+			key_flag,
+			move_batch,
+			balance_batch,
+			inventory_flag,
+			avarage_batch_flag,
+			subroute_flag,
+			jit_flag,
+			controlled_flag,
+			step_flag,
+			filter_flag,
+			neck_flag,
+			collaborative_flag,
+			first_item_check_flag,
+			inspect_flag,
+			nc_flag,
+			seq_type,
+			need_qty,
+			dispatched_qty,
+			can_dispatch_qty,
+			waste_qty,
+			invertory_qty,
+			redo_qty,
+			exceed_qty,
+			refix_qty,
+			plan_start_date,
+			plan_end_date,
+			real_start_date,
+			real_end_date,
+			cost_setup_time,
+			cost_run_time,
+			first_seq_pass_flag,
+			seq_status,
+			seq_status_label,
+			dispatch_user_name,
+			dispatch_date,
+			worker_user_id,
+			worker_user_name,
+			check_user_name,
+			check_date,
+			del_flag,
+			workcenter_code,
+			workcenter_name
+		) VALUES (
+			#{id},
+			#{mesEwoId},
+			#{mesRouteId},
+			#{operationSeqNo},
+			#{operationSeqDesc},
+			#{operationSeqNoNext},
+			#{innerOrder},
+			#{mdsOperationTypeId},
+			#{sysOfficeId},
+			#{planSetupTime},
+			#{planRunTime},
+			#{planWaitTime},
+			#{planMoveTime},
+			#{planBufferTime},
+			#{costRationTime},
+			#{mdsWorkcenterId},
+			#{keyFlag},
+			#{moveBatch},
+			#{balanceBatch},
+			#{inventoryFlag},
+			#{avarageBatchFlag},
+			#{subrouteFlag},
+			#{jitFlag},
+			#{controlledFlag},
+			#{stepFlag},
+			#{filterFlag},
+			#{neckFlag},
+			#{collaborativeFlag},
+			#{firstItemCheckFlag},
+			#{inspectFlag},
+			#{ncFlag},
+			#{seqType},
+			#{needQty},
+			#{dispatchedQty},
+			#{canDispatchQty},
+			#{wasteQty},
+			#{invertoryQty},
+			#{redoQty},
+			#{exceedQty},
+			#{refixQty},
+			#{planStartDate},
+			#{planEndDate},
+			#{realStartDate},
+			#{realEndDate},
+			#{costSetupTime},
+			#{costRunTime},
+			#{firstSeqPassFlag},
+			#{seqStatus},
+			#{seqStatusLabel},
+			#{dispatchUserName},
+			#{dispatchDate},
+			#{workerUserId},
+			#{workerUserName},
+			#{checkUserName},
+			#{checkDate},
+			#{delFlag},
+			#{workcenterCode},
+			#{workcenterName}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE mes_operation_seq_v SET 	
+			mes_ewo_id = #{mesEwoId},
+			mes_route_id = #{mesRouteId},
+			operation_seq_no = #{operationSeqNo},
+			operation_seq_desc = #{operationSeqDesc},
+			operation_seq_no_next = #{operationSeqNoNext},
+			inner_order = #{innerOrder},
+			mds_operation_type_id = #{mdsOperationTypeId},
+			sys_office_id = #{sysOfficeId},
+			plan_setup_time = #{planSetupTime},
+			plan_run_time = #{planRunTime},
+			plan_wait_time = #{planWaitTime},
+			plan_move_time = #{planMoveTime},
+			plan_buffer_time = #{planBufferTime},
+			cost_ration_time = #{costRationTime},
+			mds_workcenter_id = #{mdsWorkcenterId},
+			key_flag = #{keyFlag},
+			move_batch = #{moveBatch},
+			balance_batch = #{balanceBatch},
+			inventory_flag = #{inventoryFlag},
+			avarage_batch_flag = #{avarageBatchFlag},
+			subroute_flag = #{subrouteFlag},
+			jit_flag = #{jitFlag},
+			controlled_flag = #{controlledFlag},
+			step_flag = #{stepFlag},
+			filter_flag = #{filterFlag},
+			neck_flag = #{neckFlag},
+			collaborative_flag = #{collaborativeFlag},
+			first_item_check_flag = #{firstItemCheckFlag},
+			inspect_flag = #{inspectFlag},
+			nc_flag = #{ncFlag},
+			seq_type = #{seqType},
+			need_qty = #{needQty},
+			dispatched_qty = #{dispatchedQty},
+			can_dispatch_qty = #{canDispatchQty},
+			waste_qty = #{wasteQty},
+			invertory_qty = #{invertoryQty},
+			redo_qty = #{redoQty},
+			exceed_qty = #{exceedQty},
+			refix_qty = #{refixQty},
+			plan_start_date = #{planStartDate},
+			plan_end_date = #{planEndDate},
+			real_start_date = #{realStartDate},
+			real_end_date = #{realEndDate},
+			cost_setup_time = #{costSetupTime},
+			cost_run_time = #{costRunTime},
+			first_seq_pass_flag = #{firstSeqPassFlag},
+			seq_status = #{seqStatus},
+			seq_status_label = #{seqStatusLabel},
+			dispatch_user_name = #{dispatchUserName},
+			dispatch_date = #{dispatchDate},
+			worker_user_id = #{workerUserId},
+			worker_user_name = #{workerUserName},
+			check_user_name = #{checkUserName},
+			check_date = #{checkDate},
+			workcenter_code = #{workcenterCode},
+			workcenter_name = #{workcenterName}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM mes_operation_seq_v
+		WHERE id = #{id}
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE mes_operation_seq_v SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="MesOperationSeqV" statementType="STATEMENT">
+		select * FROM mes_operation_seq_v  where ${propertyName} = '${value}'
+	</select>
+	
+</mapper>

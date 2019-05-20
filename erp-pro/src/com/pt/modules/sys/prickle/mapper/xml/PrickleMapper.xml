@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.sys.prickle.mapper.PrickleMapper">
+    
+	<sql id="prickleColumns">
+		a.id AS "id",
+		a.unit AS "unit",
+		a.unit_text AS "unitText",
+		a.sort AS "sort"
+	</sql>
+	
+	<sql id="prickleJoins">
+		
+	</sql>
+	
+    
+	<select id="get" resultType="Prickle" >
+		SELECT 
+			<include refid="prickleColumns"/>
+		FROM prickle a
+		<include refid="prickleJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="Prickle" >
+		SELECT 
+			<include refid="prickleColumns"/>
+		FROM prickle a
+		<include refid="prickleJoins"/>
+		<where>
+			
+			${dataScope}
+			<if test="unit != null and unit != ''">
+				AND a.unit LIKE 
+					<if test="dbName == 'oracle'">'%'||#{unit}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{unit}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{unit},'%')</if>
+			</if>
+			<if test="unitText != null and unitText != ''">
+				AND a.unit_text LIKE 
+					<if test="dbName == 'oracle'">'%'||#{unitText}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{unitText}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{unitText},'%')</if>
+			</if>
+		</where>
+		order by sort
+	</select>
+	
+	<select id="findAllList" resultType="Prickle" >
+		SELECT 
+			<include refid="prickleColumns"/>
+		FROM prickle a
+		<include refid="prickleJoins"/>
+		<where>
+			
+			${dataScope}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO prickle(
+			id,
+			unit,
+			unit_text,
+			sort
+		) VALUES (
+			#{id},
+			#{unit},
+			#{unitText},
+			#{sort}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE prickle SET 	
+			unit = #{unit},
+			unit_text = #{unitText},
+			sort = #{sort}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM prickle
+		WHERE id = #{id}
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE prickle SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="Prickle" statementType="STATEMENT">
+		select * FROM prickle  where ${propertyName} = '${value}'
+	</select>
+	
+</mapper>

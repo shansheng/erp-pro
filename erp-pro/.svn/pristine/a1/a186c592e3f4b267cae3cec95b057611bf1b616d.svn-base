@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.mds.mdsequipment.mapper.MdsEquipmentMapper">
+    
+	<sql id="mdsEquipmentColumns">
+		a.id AS "id",
+		a.equipment_code AS "equipmentCode",
+		a.equipment_name AS "equipmentName",
+		a.equipment_model AS "equipmentModel",
+		a.equipment_spec AS "equipmentSpec",
+		a.tpm_equipment_class_id AS "tpmEquipmentClassId",
+		a.equipment_weigth AS "equipmentWeigth",
+		a.mds_unit_id AS "mdsUnitId",
+		a.control_system AS "controlSystem",
+		a.asset_type AS "assetType",
+		a.asset_no AS "assetNo",
+		a.fixed_asset_no AS "fixedAssetNo",
+		a.use_dept_id AS "useDeptId.id",
+		a.mds_workcenter_id AS "mdsWorkcenterId",
+		a.maintain_dept_id AS "maintainDeptId.id",
+		a.supplier_srm_vendor_id AS "supplierSrmVendorId",
+		a.factory_no AS "factoryNo",
+		a.factory_date AS "factoryDate",
+		a.date_of_receiving AS "dateOfReceiving",
+		a.date_of_install AS "dateOfInstall",
+		a.abc_code AS "abcCode",
+		a.equipment_status AS "equipmentStatus",
+		a.item_01 AS "item01",
+		a.item_02 AS "item02",
+		a.item_03 AS "item03",
+		a.item_04 AS "item04",
+		a.item_05 AS "item05",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag",
+		useDeptId.name AS "useDeptId.name",
+		maintainDeptId.name AS "maintainDeptId.name"
+	</sql>
+	
+	<sql id="mdsEquipmentJoins">
+		LEFT JOIN sys_office maintainDeptId ON maintainDeptId.id = a.maintain_dept_id
+		LEFT JOIN sys_office useDeptId ON useDeptId.id = a.use_dept_id
+	</sql>
+	
+    
+	<select id="get" resultType="MdsEquipment" >
+		SELECT 
+			<include refid="mdsEquipmentColumns"/>
+		FROM mds_equipment a
+		<include refid="mdsEquipmentJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="MdsEquipment" >
+		SELECT 
+			<include refid="mdsEquipmentColumns"/>
+		FROM mds_equipment a
+		<include refid="mdsEquipmentJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			${dataScope}
+			<if test="equipmentCode != null and equipmentCode != ''">
+				AND a.equipment_code like concat(concat('%',#{equipmentCode}),'%')
+			</if>
+			<if test="equipmentName != null and equipmentName != ''">
+				AND a.equipment_name like concat(concat('%',#{equipmentName}),'%')
+			</if>
+			<if test="assetType != null and assetType != ''">
+				AND a.asset_type = #{assetType}
+			</if>
+			<if test="useDeptId != null and useDeptId.id != null and useDeptId.id != ''">
+				AND a.use_dept_id = #{useDeptId.id}
+			</if>
+			<if test="equipmentStatus != null and equipmentStatus != ''">
+				AND a.equipment_status = #{equipmentStatus}
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="MdsEquipment" >
+		SELECT 
+			<include refid="mdsEquipmentColumns"/>
+		FROM mds_equipment a
+		<include refid="mdsEquipmentJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			${dataScope}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO mds_equipment(
+			id,
+			equipment_code,
+			equipment_name,
+			equipment_model,
+			equipment_spec,
+			tpm_equipment_class_id,
+			equipment_weigth,
+			mds_unit_id,
+			control_system,
+			asset_type,
+			asset_no,
+			fixed_asset_no,
+			use_dept_id,
+			mds_workcenter_id,
+			maintain_dept_id,
+			supplier_srm_vendor_id,
+			factory_no,
+			factory_date,
+			date_of_receiving,
+			date_of_install,
+			abc_code,
+			equipment_status,
+			item_01,
+			item_02,
+			item_03,
+			item_04,
+			item_05,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks,
+			del_flag
+		) VALUES (
+			#{id},
+			#{equipmentCode},
+			#{equipmentName},
+			#{equipmentModel},
+			#{equipmentSpec},
+			#{tpmEquipmentClassId},
+			#{equipmentWeigth},
+			#{mdsUnitId},
+			#{controlSystem},
+			#{assetType},
+			#{assetNo},
+			#{fixedAssetNo},
+			#{useDeptId.id},
+			#{mdsWorkcenterId},
+			#{maintainDeptId.id},
+			#{supplierSrmVendorId},
+			#{factoryNo},
+			#{factoryDate},
+			#{dateOfReceiving},
+			#{dateOfInstall},
+			#{abcCode},
+			#{equipmentStatus},
+			#{item01},
+			#{item02},
+			#{item03},
+			#{item04},
+			#{item05},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remarks},
+			#{delFlag}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE mds_equipment SET 	
+			equipment_code = #{equipmentCode},
+			equipment_name = #{equipmentName},
+			equipment_model = #{equipmentModel},
+			equipment_spec = #{equipmentSpec},
+			tpm_equipment_class_id = #{tpmEquipmentClassId},
+			equipment_weigth = #{equipmentWeigth},
+			mds_unit_id = #{mdsUnitId},
+			control_system = #{controlSystem},
+			asset_type = #{assetType},
+			asset_no = #{assetNo},
+			fixed_asset_no = #{fixedAssetNo},
+			use_dept_id = #{useDeptId.id},
+			mds_workcenter_id = #{mdsWorkcenterId},
+			maintain_dept_id = #{maintainDeptId.id},
+			supplier_srm_vendor_id = #{supplierSrmVendorId},
+			factory_no = #{factoryNo},
+			factory_date = #{factoryDate},
+			date_of_receiving = #{dateOfReceiving},
+			date_of_install = #{dateOfInstall},
+			abc_code = #{abcCode},
+			equipment_status = #{equipmentStatus},
+			item_01 = #{item01},
+			item_02 = #{item02},
+			item_03 = #{item03},
+			item_04 = #{item04},
+			item_05 = #{item05},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remarks = #{remarks}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM mds_equipment
+		WHERE id = #{id}
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE mds_equipment SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="MdsEquipment" statementType="STATEMENT">
+		select * FROM mds_equipment  where ${propertyName} = '${value}'
+	</select>
+	
+</mapper>

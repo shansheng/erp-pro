@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.mds.mdsbom.mapper.MdsBomMapper">
+    
+	<sql id="mdsBomColumns">
+		a.id AS "id",
+		a.bom_type AS "bomType",
+		a.mds_item_id AS "mdsItemId",
+		a.parent_item_id AS "parentItemId",
+		a.pro_mds_item_id AS "proMdsItemId",
+		a.mds_bom_instance_id AS "mdsBomInstanceId",
+		a.effective_type AS "effectiveType",
+		a.effective_date AS "effectiveDate",
+		a.ineffective_date AS "ineffectiveDate",
+		a.effective_value AS "effectiveValue",
+		a.ineffective_value AS "ineffectiveValue",
+		a.option_flag AS "optionFlag",
+		a.part_quantity AS "partQuantity",
+		a.avg_utl_ratio AS "avgUtlRatio",
+		a.raw_qty AS "rawQty",
+		a.m_length AS "mLength",
+		a.m_width AS "mWidth",
+		a.m_thickness AS "mThickness",
+		a.item_01 AS "item01",
+		a.item_02 AS "item02",
+		a.item_03 AS "item03",
+		a.item_04 AS "item04",
+		a.item_05 AS "item05",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag",
+		i.item_code As "itemCode",
+		i.item_name As "itemName"
+	</sql>
+	
+	<sql id="mdsBomJoins">
+		inner join mds_item i on a.mds_item_id = i.id
+	</sql>
+	
+    
+	<select id="get" resultType="MdsBom" >
+		SELECT 
+			<include refid="mdsBomColumns"/>
+		FROM mds_bom a
+		<include refid="mdsBomJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="MdsBom" >
+		SELECT 
+			<include refid="mdsBomColumns"/>
+		FROM mds_bom a
+		<include refid="mdsBomJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			${dataScope}
+			<if test="bomType != null and bomType != ''">
+				AND a.bom_type = #{bomType}
+			</if>
+			<if test="mdsItemId != null and mdsItemId != ''">
+				AND a.mds_item_id = #{mdsItemId}
+			</if>
+			<if test="parentItemId != null and parentItemId != ''">
+				AND a.parent_item_id = #{parentItemId}
+			</if>
+			<if test="proMdsItemId != null and proMdsItemId != ''">
+				AND a.pro_mds_item_id = #{proMdsItemId}
+			</if>
+		</where>
+	</select>
+	
+	<select id="findAllList" resultType="MdsBom" >
+		SELECT 
+			<include refid="mdsBomColumns"/>
+		FROM mds_bom a
+		<include refid="mdsBomJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			${dataScope}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO mds_bom(
+			id,
+			bom_type,
+			mds_item_id,
+			parent_item_id,
+			pro_mds_item_id,
+			mds_bom_instance_id,
+			effective_type,
+			effective_date,
+			ineffective_date,
+			effective_value,
+			ineffective_value,
+			option_flag,
+			part_quantity,
+			avg_utl_ratio,
+			raw_qty,
+			m_length,
+			m_width,
+			m_thickness,
+			item_01,
+			item_02,
+			item_03,
+			item_04,
+			item_05,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks,
+			del_flag
+		) VALUES (
+			#{id},
+			#{bomType},
+			#{mdsItemId},
+			#{parentItemId},
+			#{proMdsItemId},
+			#{mdsBomInstanceId},
+			#{effectiveType},
+			#{effectiveDate},
+			#{ineffectiveDate},
+			#{effectiveValue},
+			#{ineffectiveValue},
+			#{optionFlag},
+			#{partQuantity},
+			#{avgUtlRatio},
+			#{rawQty},
+			#{mLength},
+			#{mWidth},
+			#{mThickness},
+			#{item01},
+			#{item02},
+			#{item03},
+			#{item04},
+			#{item05},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remarks},
+			#{delFlag}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE mds_bom SET 	
+			bom_type = #{bomType},
+			mds_item_id = #{mdsItemId},
+			parent_item_id = #{parentItemId},
+			pro_mds_item_id = #{proMdsItemId},
+			mds_bom_instance_id = #{mdsBomInstanceId},
+			effective_type = #{effectiveType},
+			effective_date = #{effectiveDate},
+			ineffective_date = #{ineffectiveDate},
+			effective_value = #{effectiveValue},
+			ineffective_value = #{ineffectiveValue},
+			option_flag = #{optionFlag},
+			part_quantity = #{partQuantity},
+			avg_utl_ratio = #{avgUtlRatio},
+			raw_qty = #{rawQty},
+			m_length = #{mLength},
+			m_width = #{mWidth},
+			m_thickness = #{mThickness},
+			item_01 = #{item01},
+			item_02 = #{item02},
+			item_03 = #{item03},
+			item_04 = #{item04},
+			item_05 = #{item05},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remarks = #{remarks}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM mds_bom
+		WHERE id = #{id}
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE mds_bom SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="MdsBom" statementType="STATEMENT">
+		select * FROM mds_bom  where ${propertyName} = '${value}'
+	</select>
+	
+</mapper>

@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.wms.wmsinvoutbill.mapper.WmsInvOutBillMapper">
+    
+	<sql id="wmsInvOutBillColumns">
+		a.id AS "id",
+		a.bill_no AS "billNo",
+		a.bill_type AS "billType",
+		a.apply_sys_user_id AS "applySysUserId",
+		user.name AS "applySysUserName",
+		a.apply_date AS "applyDate",
+		inv.id AS "wmsInventory.id",
+		inv.inventory_code AS "wmsInventory.inventoryCode",
+		inv.inventory_name AS "wmsInventory.inventoryName",
+		a.status AS "status",
+		a.item_01 AS "item01",
+		a.item_02 AS "item02",
+		a.item_03 AS "item03",
+		a.item_04 AS "item04",
+		a.item_05 AS "item05",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag"
+	</sql>
+	
+	<sql id="wmsInvOutBillJoins">
+		LEFT JOIN wms_inventory inv on a.wms_inventory_id = inv.id
+		LEFT JOIN sys_user user on a.apply_sys_user_id = user.id
+	</sql>
+	
+    
+	<select id="get" resultType="WmsInvOutBill" >
+		SELECT 
+			<include refid="wmsInvOutBillColumns"/>
+		FROM wms_inv_out_bill a
+		<include refid="wmsInvOutBillJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="WmsInvOutBill" >
+		SELECT 
+			<include refid="wmsInvOutBillColumns"/>
+		FROM wms_inv_out_bill a
+		<include refid="wmsInvOutBillJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			${dataScope}
+			<if test="billNo != null and billNo != ''">
+				AND a.bill_no = #{billNo}
+			</if>
+			<if test="billType != null and billType != ''">
+				AND a.bill_type = #{billType}
+			</if>
+			<if test="wmsInventory.id != null and wmsInventory.id != ''">
+				AND inv.id = #{wmsInventory.id}
+			</if>
+			<if test="status != null and status != ''">
+				AND a.status = #{status}
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="WmsInvOutBill" >
+		SELECT 
+			<include refid="wmsInvOutBillColumns"/>
+		FROM wms_inv_out_bill a
+		<include refid="wmsInvOutBillJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			${dataScope}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO wms_inv_out_bill(
+			id,
+			bill_no,
+			bill_type,
+			apply_sys_user_id,
+			apply_date,
+			wms_inventory_id,
+			status,
+			item_01,
+			item_02,
+			item_03,
+			item_04,
+			item_05,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks,
+			del_flag
+		) VALUES (
+			#{id},
+			#{billNo},
+			#{billType},
+			#{applySysUserId},
+			#{applyDate},
+			#{wmsInventory.id},
+			#{status},
+			#{item01},
+			#{item02},
+			#{item03},
+			#{item04},
+			#{item05},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remarks},
+			#{delFlag}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE wms_inv_out_bill SET 	
+			bill_no = #{billNo},
+			bill_type = #{billType},
+			apply_sys_user_id = #{applySysUserId},
+			apply_date = #{applyDate},
+			wms_inventory_id = #{wmsInventory.id},
+			status = #{status},
+			item_01 = #{item01},
+			item_02 = #{item02},
+			item_03 = #{item03},
+			item_04 = #{item04},
+			item_05 = #{item05},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remarks = #{remarks}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM wms_inv_out_bill
+		WHERE id = #{id}
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE wms_inv_out_bill SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="WmsInvOutBill" statementType="STATEMENT">
+		select * FROM wms_inv_out_bill  where ${propertyName} = '${value}'
+	</select>
+	
+	<!-- 获取自动编码 -->
+	<select id="getBillNo" parameterType="java.util.Map" statementType="CALLABLE">  
+		{call pt.sys_auto_code_p(
+				  #{i_auto_code,jdbcType=VARCHAR,mode=IN},  
+				  #{i_prefix,jdbcType=CHAR,mode=IN},
+				  #{i_postfix,jdbcType=CHAR,mode=IN},  
+				  #{i_Sys_User_Id,jdbcType=VARCHAR,mode=IN},  
+				  #{o_return_code,jdbcType=VARCHAR,mode=OUT}
+			  )
+    	}
+	</select>
+	
+	<!-- 出库-->
+	<select id="doOutInvSubmit" parameterType="java.util.Map" statementType="CALLABLE">  
+		{call ptplus.wms_inv_out_bill_submit_p(
+				  #{i_Id,jdbcType=VARCHAR,mode=IN},  
+				  #{i_Sys_User_Id,jdbcType=VARCHAR,mode=IN},
+				  #{o_Return_Int,jdbcType=INTEGER,mode=OUT},
+				  #{o_Return_String,jdbcType=VARCHAR,mode=OUT}
+			  )
+    	}
+	</select>
+	
+	<select id="shortageNum" resultType="java.lang.Double" parameterType="java.lang.String">
+		select min(list.apply_qty - itemInv.current_onhand_qty) As shortageNum 
+		from wms_inv_out_bill bill 
+		inner join wms_inv_out_bill_list list on bill.id = list.wms_inv_out_bill_id
+		inner join wms_item_inventory itemInv on list.wms_item_inventory_id = itemInv.id
+		where bill.id = #{id}
+	</select>
+</mapper>

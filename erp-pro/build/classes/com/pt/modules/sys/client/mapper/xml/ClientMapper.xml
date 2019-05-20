@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.sys.client.mapper.ClientMapper">
+    
+	<sql id="clientColumns">
+		a.id AS "id",
+		a.client_manager AS "clientManager",
+		a.valid AS "valid",
+		a.phone AS "phone",
+		a.email AS "email",
+		a.fax AS "fax",
+		a.postcode AS "postcode",
+		a.client_class AS "clientClass",
+		a.industry AS "industry",
+		a.region AS "region",
+		a.website AS "website",
+		a.address AS "address",
+		a.remake AS "remake",
+		a.upload AS "upload",
+		a.client_no AS "clientNo",
+		a.short_title AS "shortTitle",
+		a.client_name AS "clientName"
+	</sql>
+	
+	<sql id="clientJoins">
+		
+	</sql>
+	
+    
+	<select id="get" resultType="Client" >
+		SELECT 
+			<include refid="clientColumns"/>
+		FROM client a
+		<include refid="clientJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="Client" >
+		SELECT 
+			<include refid="clientColumns"/>
+		FROM client a
+		<include refid="clientJoins"/>
+		<where>
+			
+			${dataScope}
+			<if test="region != null and region != ''">
+				AND a.region LIKE 
+					<if test="dbName == 'oracle'">'%'||#{region}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{region}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{region},'%')</if>
+			</if>
+			<if test="clientNo != null and clientNo != ''">
+				AND a.client_no LIKE 
+					<if test="dbName == 'oracle'">'%'||#{clientNo}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{clientNo}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{clientNo},'%')</if>
+			</if>
+			<if test="shortTitle != null and shortTitle != ''">
+				AND a.short_title LIKE 
+					<if test="dbName == 'oracle'">'%'||#{shortTitle}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{shortTitle}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{shortTitle},'%')</if>
+			</if>
+			<if test="clientName != null and clientName != ''">
+				AND a.client_name LIKE 
+					<if test="dbName == 'oracle'">'%'||#{clientName}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{clientName}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{clientName},'%')</if>
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="Client" >
+		SELECT 
+			<include refid="clientColumns"/>
+		FROM client a
+		<include refid="clientJoins"/>
+		<where>
+			
+			${dataScope}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO client(
+			id,
+			client_manager,
+			valid,
+			phone,
+			email,
+			fax,
+			postcode,
+			client_class,
+			industry,
+			region,
+			website,
+			address,
+			remake,
+			upload,
+			client_no,
+			short_title,
+			client_name
+		) VALUES (
+			#{id},
+			#{clientManager},
+			#{valid},
+			#{phone},
+			#{email},
+			#{fax},
+			#{postcode},
+			#{clientClass},
+			#{industry},
+			#{region},
+			#{website},
+			#{address},
+			#{remake},
+			#{upload},
+			#{clientNo},
+			#{shortTitle},
+			#{clientName}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE client SET 	
+			client_manager = #{clientManager},
+			valid = #{valid},
+			phone = #{phone},
+			email = #{email},
+			fax = #{fax},
+			postcode = #{postcode},
+			client_class = #{clientClass},
+			industry = #{industry},
+			region = #{region},
+			website = #{website},
+			address = #{address},
+			remake = #{remake},
+			upload = #{upload},
+			client_no = #{clientNo},
+			short_title = #{shortTitle},
+			client_name = #{clientName}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM client
+		WHERE id = #{id}
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE client SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="Client" statementType="STATEMENT">
+		select * FROM client  where ${propertyName} = '${value}'
+	</select>
+	
+</mapper>

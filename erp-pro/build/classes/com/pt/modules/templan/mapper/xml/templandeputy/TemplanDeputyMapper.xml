@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.templan.mapper.templandeputy.TemplanDeputyMapper">
+    
+	<sql id="templanDeputyColumns">
+		a.id AS "id",
+		a.code AS "code",
+		a.department_assessing AS "departmentAssessing",
+		a.department_assessing_date AS "departmentAssessingDate",
+		a.deputy_assessing AS "deputyAssessing",
+		a.deputy_assessing_date AS "deputyAssessingDate",
+		a.state AS "state",
+		a.column1 AS "column1",
+		a.column2 AS "column2",
+		a.column3 AS "column3",
+		a.column4 AS "column4",
+		a.column5 AS "column5",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag",
+		s.login_name AS "createByName",
+		b.login_name AS "departmentAssessingName"
+	</sql>
+	
+	<sql id="templanDeputyJoins">
+			left join test_temporary_plan_list ttpl on ttpl.temporary_plan_id=a.id
+		left join mds_item mi on mi.id=ttpl.mds_item_id
+	</sql>
+	
+    
+	<select id="get" resultType="TemplanDeputy" >
+		SELECT 
+			<include refid="templanDeputyColumns"/>
+		FROM test_temporary_plan a
+		LEFT JOIN SYS_USER s ON s.id=a.create_by
+		LEFT JOIN SYS_USER b ON b.id=a.department_assessing
+		<!-- <include refid="templanDeputyJoins"/> -->
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="TemplanDeputy" >
+		SELECT 
+			<include refid="templanDeputyColumns"/>
+		FROM test_temporary_plan a
+		LEFT JOIN SYS_USER s ON s.id=a.create_by
+		LEFT JOIN SYS_USER b ON b.id=a.department_assessing
+		<!-- <include refid="templanDeputyJoins"/> -->
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			AND a.state='30'
+			
+			${dataScope}
+			<if test="code != null and code != ''">
+				AND a.code LIKE 
+					<if test="dbName == 'oracle'">'%'||#{code}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{code}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{code},'%')</if>
+			</if>
+			<if test="state != null and state != ''">
+			    AND a.state = #{state}
+			</if >
+			<if test="departmentAssessing != null and departmentAssessing != ''">
+				AND a.department_assessing = #{departmentAssessing}
+			</if>
+			<if test="departmentAssessingDate != null and departmentAssessingDate != ''">
+				AND a.department_assessing_date = #{departmentAssessingDate}
+			</if>
+			<if test="deputyAssessing != null and deputyAssessing != ''">
+				AND a.deputy_assessing = #{deputyAssessing}
+			</if>
+			<if test="deputyAssessingDate != null and deputyAssessingDate != ''">
+				AND a.deputy_assessing_date = #{deputyAssessingDate}
+			</if>
+			<if test="createBy != null and createBy.id != null and createBy.id != ''">
+				AND a.create_by LIKE 
+					<if test="dbName == 'oracle'">'%'||#{createBy.id}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{createBy.id}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{createBy.id},'%')</if>
+			</if>
+			<if test="beginCreateDate != null and endCreateDate != null and beginCreateDate != '' and endCreateDate != ''">
+				AND a.create_date BETWEEN #{beginCreateDate} AND #{endCreateDate}
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="TemplanDeputy" >
+		SELECT 
+			<include refid="templanDeputyColumns"/>
+		FROM test_temporary_plan a
+		<include refid="templanDeputyJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			${dataScope}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO test_temporary_plan(
+			id,
+			code,
+			department_assessing,
+			department_assessing_date,
+			deputy_assessing,
+			deputy_assessing_date,
+			state,
+			column1,
+			column2,
+			column3,
+			column4,
+			column5,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks,
+			del_flag
+		) VALUES (
+			#{id},
+			#{code},
+			#{departmentAssessing},
+			#{departmentAssessingDate},
+			#{deputyAssessing},
+			#{deputyAssessingDate},
+			#{state},
+			#{column1},
+			#{column2},
+			#{column3},
+			#{column4},
+			#{column5},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remarks},
+			#{delFlag}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE test_temporary_plan SET 	
+			code = #{code},
+			department_assessing = #{departmentAssessing},
+			department_assessing_date = #{departmentAssessingDate},
+			deputy_assessing = #{deputyAssessing},
+			deputy_assessing_date = #{deputyAssessingDate},
+			state = #{state},
+			column1 = #{column1},
+			column2 = #{column2},
+			column3 = #{column3},
+			column4 = #{column4},
+			column5 = #{column5},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remarks = #{remarks}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM test_temporary_plan
+		WHERE id = #{id}
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE test_temporary_plan SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="TemplanDeputy" statementType="STATEMENT">
+		select * FROM test_temporary_plan  where ${propertyName} = '${value}'
+	</select>
+	<update id="rejectState">
+	   update test_temporary_plan 
+	   SET state =#{state},
+	     DEPUTY_ASSESSING =#{deputyAssessing},
+	     DEPUTY_ASSESSING_DATE=#{deputyAssessingDate}
+	   where id=#{id}
+	</update>
+	<update id="argeeState">
+	   update test_temporary_plan
+	   SET STATE=#{state},
+	   DEPUTY_ASSESSING =#{deputyAssessing},
+	     DEPUTY_ASSESSING_DATE=#{deputyAssessingDate}
+	   WHERE ID=#{id}
+	</update>
+</mapper>

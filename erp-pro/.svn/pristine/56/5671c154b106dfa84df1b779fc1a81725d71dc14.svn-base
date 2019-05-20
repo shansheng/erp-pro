@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.templan.templanprocurement.mapper.TemplanProcurementMapper">
+    
+	<sql id="templanProcurementColumns">
+		a.id AS "id",
+		a.code AS "code",
+		a.department_assessing AS "departmentAssessing",
+		a.department_assessing_date AS "departmentAssessingDate",
+		a.deputy_assessing AS "deputyAssessing",
+		a.deputy_assessing_date AS "deputyAssessingDate",
+		a.state AS "state",
+		a.column1 AS "column1",
+		a.column2 AS "column2",
+		a.column3 AS "column3",
+		a.column4 AS "column4",
+		a.column5 AS "column5",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag",
+		su.login_name as "createBy.name",
+		su1.login_name AS "departmentAssessingName",
+		su2.login_name AS "deputyAssessingName"
+	</sql>
+	
+	<sql id="templanProcurementJoins">
+		LEFT JOIN sys_user su On a.create_by = su.id 
+		LEFT JOIN sys_user su1 On a.DEPARTMENT_ASSESSING = su1.id 
+		LEFT JOIN sys_user su2 On a.DEPUTY_ASSESSING = su2.id 
+		
+	</sql>
+	
+    
+	<select id="get" resultType="TemplanProcurement" >
+		SELECT 
+			<include refid="templanProcurementColumns"/>
+		FROM test_temporary_plan a
+		<include refid="templanProcurementJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="TemplanProcurement" >
+		SELECT 
+			<include refid="templanProcurementColumns"/>
+		FROM test_temporary_plan a
+		<include refid="templanProcurementJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			and a.state in('50','45','40')
+			${dataScope}
+			<if test="code != null and code != ''">
+				AND a.code LIKE 
+					<if test="dbName == 'oracle'">'%'||#{code}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{code}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{code},'%')</if>
+			</if>
+			<if test="createBy.name != null and createBy.name != ''">
+				AND su.login_name LIKE 
+					<if test="dbName == 'oracle'">'%'||#{createBy.name}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{createBy.name}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{createBy.name},'%')</if>
+			</if>
+			<if test="departmentAssessingName != null and departmentAssessingName != ''">
+				AND su1.login_name LIKE 
+					<if test="dbName == 'oracle'">'%'||#{departmentAssessingName}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{departmentAssessingName}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{departmentAssessingName},'%')</if>
+			</if>
+			<if test="deputyAssessingName != null and deputyAssessingName != ''">
+				AND su2.login_name LIKE 
+					<if test="dbName == 'oracle'">'%'||#{deputyAssessingName}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{deputyAssessingName}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{deputyAssessingName},'%')</if>
+			</if>
+			<if test="departmentAssessing != null and departmentAssessing != ''">
+				AND a.department_assessing = #{departmentAssessing}
+			</if>
+			<if test="departmentAssessingDate != null and departmentAssessingDate != '' and departmentAssessingDateEnd != null and departmentAssessingDateEnd != ''">
+				AND a.department_assessing_date between #{departmentAssessingDate} and #{departmentAssessingDateEnd}+1-1/24/60/60
+			</if>
+			<if test="deputyAssessing != null and deputyAssessing != ''">
+				AND a.deputy_assessing = #{deputyAssessing}
+			</if>
+			<if test="deputyAssessingDate != null and deputyAssessingDate != '' and deputyAssessingDateEnd != null and deputyAssessingDateEnd != ''">
+				AND a.deputy_assessing_date between #{deputyAssessingDate} and #{deputyAssessingDateEnd}+1-1/24/60/60
+			</if>
+			<if test="createBy != null and createBy.id != null and createBy.id != ''">
+				AND a.create_by = #{createBy.id}
+			</if>
+			<if test="createDate != null and createDate != ''  and createDateEnd != null and createDateEnd != ''">
+				AND a.create_date between #{createDate} and #{createDateEnd}+1-1/24/60/60
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.create_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="TemplanProcurement" >
+		SELECT 
+			<include refid="templanProcurementColumns"/>
+		FROM test_temporary_plan a
+		<include refid="templanProcurementJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			${dataScope}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO test_temporary_plan(
+			id,
+			code,
+			department_assessing,
+			department_assessing_date,
+			deputy_assessing,
+			deputy_assessing_date,
+			state,
+			column1,
+			column2,
+			column3,
+			column4,
+			column5,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks,
+			del_flag
+		) VALUES (
+			#{id},
+			#{code},
+			#{departmentAssessing},
+			#{departmentAssessingDate},
+			#{deputyAssessing},
+			#{deputyAssessingDate},
+			#{state},
+			#{column1},
+			#{column2},
+			#{column3},
+			#{column4},
+			#{column5},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remarks},
+			#{delFlag}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE test_temporary_plan SET 	
+			state = #{state},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM test_temporary_plan
+		WHERE id = #{id}
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE test_temporary_plan SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="TemplanProcurement" statementType="STATEMENT">
+		select * FROM test_temporary_plan  where ${propertyName} = '${value}'
+	</select>
+	
+</mapper>

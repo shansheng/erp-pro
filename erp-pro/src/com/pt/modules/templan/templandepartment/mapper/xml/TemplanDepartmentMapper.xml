@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.templan.templandepartment.mapper.TemplanDepartmentMapper">
+    
+	<sql id="templanDepartmentColumns">
+		a.id AS "id",
+		a.code AS "code",
+		a.department_assessing AS "departmentAssessing",
+		a.department_assessing_date AS "departmentAssessingDate",
+		a.deputy_assessing AS "deputyAssessing",
+		a.deputy_assessing_date AS "deputyAssessingDate",
+		a.state AS "state",
+		a.column1 AS "column1",
+		a.column2 AS "column2",
+		a.column3 AS "column3",
+		a.column4 AS "column4",
+		a.column5 AS "column5",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag",
+		su.login_name as "createBy.name"
+	</sql>
+	
+	<sql id="templanDepartmentJoins">
+		LEFT JOIN sys_user su On a.create_by = su.id 
+	</sql>
+	
+    
+	<select id="get" resultType="TemplanDepartment" >
+		SELECT 
+			<include refid="templanDepartmentColumns"/>
+		FROM test_temporary_plan a
+		<include refid="templanDepartmentJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="TemplanDepartment" >
+		SELECT 
+			<include refid="templanDepartmentColumns"/>
+		FROM test_temporary_plan a
+		<include refid="templanDepartmentJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			and a.state in('20','21')
+			${dataScope}
+			<if test="code != null and code != ''">
+				AND a.code LIKE 
+					<if test="dbName == 'oracle'">'%'||#{code}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{code}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{code},'%')</if>
+			</if>
+			<if test="createBy.name != null and createBy.name != ''">
+				AND su.login_name LIKE 
+					<if test="dbName == 'oracle'">'%'||#{createBy.name}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{createBy.name}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{createBy.name},'%')</if>
+			</if>
+			<if test="state != null and state != ''">
+				AND a.state = #{state}
+			</if>
+			<if test="createBy != null and createBy.id != null and createBy.id != ''">
+				AND a.create_by = #{createBy.id}
+			</if>
+			<if test="createDate != null and createDate != '' and createDateEnd != null and createDateEnd != ''">
+				<!-- AND a.create_date between #{createDate} and #{createDateEnd}+1-1/24/60/60 -->
+				AND a.create_date between #{createDate} and DATE_ADD(#{createDateEnd},INTERVAL 1 DAY)
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="TemplanDepartment" >
+		SELECT 
+			<include refid="templanDepartmentColumns"/>
+		FROM test_temporary_plan a
+		<include refid="templanDepartmentJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			${dataScope}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO test_temporary_plan(
+			id,
+			code,
+			department_assessing,
+			department_assessing_date,
+			deputy_assessing,
+			deputy_assessing_date,
+			state,
+			column1,
+			column2,
+			column3,
+			column4,
+			column5,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks,
+			del_flag
+		) VALUES (
+			#{id},
+			#{code},
+			#{departmentAssessing},
+			#{departmentAssessingDate},
+			#{deputyAssessing},
+			#{deputyAssessingDate},
+			#{state},
+			#{column1},
+			#{column2},
+			#{column3},
+			#{column4},
+			#{column5},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remarks},
+			#{delFlag}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE test_temporary_plan SET 	
+			department_assessing = #{departmentAssessing},
+			department_assessing_date = #{departmentAssessingDate},
+			state = #{state},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM test_temporary_plan
+		WHERE id = #{id}
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE test_temporary_plan SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="TemplanDepartment" statementType="STATEMENT">
+		select * FROM test_temporary_plan  where ${propertyName} = '${value}'
+	</select>
+	
+</mapper>

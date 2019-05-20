@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.wms.wmsfiscalperiod.mapper.WmsFiscalPeriodMapper">
+    
+	<sql id="wmsFiscalPeriodColumns">
+		a.id AS "id",
+		a.year AS "year",
+		a.period AS "period",
+		a.start_date AS "startDate",
+		a.end_date AS "endDate",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag"
+	</sql>
+	
+	<sql id="wmsFiscalPeriodJoins">
+		
+	</sql>
+	
+    
+	<select id="get" resultType="WmsFiscalPeriod" >
+		SELECT 
+			<include refid="wmsFiscalPeriodColumns"/>
+		FROM wms_fiscal_period a
+		<include refid="wmsFiscalPeriodJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="WmsFiscalPeriod" >
+		SELECT 
+			<include refid="wmsFiscalPeriodColumns"/>
+		FROM wms_fiscal_period a
+		<include refid="wmsFiscalPeriodJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			${dataScope}
+			<if test="year != null and year != ''">
+				AND a.year = #{year}
+			</if>
+			<if test="period != null and period != ''">
+				AND a.period = #{period}
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="WmsFiscalPeriod" >
+		SELECT 
+			<include refid="wmsFiscalPeriodColumns"/>
+		FROM wms_fiscal_period a
+		<include refid="wmsFiscalPeriodJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			${dataScope}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO wms_fiscal_period(
+			id,
+			year,
+			period,
+			start_date,
+			end_date,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks,
+			del_flag
+		) VALUES (
+			#{id},
+			#{year},
+			#{period},
+			#{startDate},
+			#{endDate},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remarks},
+			#{delFlag}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE wms_fiscal_period SET 	
+			year = #{year},
+			period = #{period},
+			start_date = #{startDate},
+			end_date = #{endDate},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remarks = #{remarks}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM wms_fiscal_period
+		WHERE id = #{id}
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE wms_fiscal_period SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="WmsFiscalPeriod" statementType="STATEMENT">
+		select * FROM wms_fiscal_period  where ${propertyName} = '${value}'
+	</select>
+	
+</mapper>

@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.mds.mdsPurchaseSupplier.mapper.MdsPurchaseSupplierMapper">
+      <!-- 从视图中获取的字段 -->
+	<sql id="mdsProcurementPlanColumns">
+		a.id AS "id",
+		a.mds_item_id AS "mdsItemId",
+		a.classify AS "classify",
+		a.item_code AS "itemCode",
+		a.item_name AS "itemName",
+		a.normal_field AS "normalField",
+		a.modelnm AS "modelnm",
+		a.specs AS "specs",
+		a.purchase_amount AS "purchaseAmount",
+		a.required_date AS "requiredDate",
+		a.state AS "state",
+		a.procurement_way AS "procurementWay",
+		a.from_id AS "fromId",
+		a.source_type AS "sourceType",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.particulars AS "particulars",
+		a.buyer AS "buyer.id",
+		a.name AS "buyer.name",
+		a.supplier_name AS "supplierName"
+	</sql>
+	<!-- 从表中获取 -->
+	<sql id="mdsProcurementPlanColumns2">
+		a.id AS "id",
+		a.mds_item_id AS "mdsItemId",
+		a.classify AS "classify",
+		a.item_code AS "itemCode",
+		a.item_name AS "itemName",
+		a.normal_field AS "normalField",
+		a.modelnm AS "modelnm",
+		a.specs AS "specs",
+		a.purchase_amount AS "purchaseAmount",
+		a.required_date AS "requiredDate",
+		a.state AS "state",
+		a.procurement_way AS "procurementWay",
+		a.from_id AS "fromId",
+		a.source_type AS "sourceType",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.supplier_name AS "supplierName",
+		a.buyer AS "buyer.id",
+		b.name AS "buyer.name"
+	</sql>
+	<!-- 统计查询 -->
+	<sql id="mdsProcurementPlanColumns3">
+		a.mds_item_id as "mdsItemId",
+		a.item_code as "itemCode",
+		a.item_name as "itemName",
+		a.normal_field as "normalField",
+		a.modelnm,
+		a.specs,
+		purchaseAmount,
+		a.required_date as "requiredDate",
+		a.state
+	</sql>
+		<sql id="mdsProcurementPlanJoins">
+		left join sys_user b on a.buyer=b.id
+	</sql>
+	<select id="get" resultType="MdsProcurementPlan" >
+		SELECT 
+			<include refid="mdsProcurementPlanColumns2"/>
+		FROM mds_procurement_plan a
+		<include refid="mdsProcurementPlanJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="MdsProcurementPlan" >
+		 SELECT 
+			<include refid="mdsProcurementPlanColumns2"/>
+		FROM MDS_PROCUREMENT_PLAN_V a
+		<include refid="mdsProcurementPlanJoins"/>
+		<where>
+			<if test="itemCode != null and itemCode != ''">
+				AND a.item_code LIKE 
+					<if test="dbName == 'oracle'">'%'||#{itemCode}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{itemCode}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{itemCode},'%')</if>
+			</if>
+			<if test="itemName != null and itemName != ''">
+				AND a.item_name LIKE 
+					<if test="dbName == 'oracle'">'%'||#{itemName}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{itemName}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{itemName},'%')</if>
+			</if>
+			<if test="beginRequiredDate != null and endRequiredDate != null and beginRequiredDate != '' and endRequiredDate != ''">
+				AND a.required_date BETWEEN #{beginRequiredDate} AND #{endRequiredDate}
+			</if>
+			<choose>
+				<when test="state != null and state != ''">
+					AND a.state = #{state}
+				</when>
+				<otherwise>
+					AND a.state in ('10','15')
+			</otherwise>
+			</choose>
+			<if test="procurementWay != null and procurementWay != ''">
+				AND a.procurement_way = #{procurementWay}
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy},a.update_date DESC
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	
+	<update id="updateSupplier">
+	   update MDS_PROCUREMENT_PLAN
+	   set supplier_id = #{supplierId},
+	   supplier_name = #{supplierName},
+	   state = #{state},
+	   finish_state ='2'
+	   where id=#{id}
+	</update>
+</mapper>

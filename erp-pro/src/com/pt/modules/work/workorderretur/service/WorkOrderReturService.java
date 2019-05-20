@@ -1,0 +1,147 @@
+/**
+ * Copyright &copy; 2015-2020 <a href="http://www.pt.org/">pt</a> All rights reserved.
+ */
+package com.pt.modules.work.workorderretur.service;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.pt.common.utils.StringUtils;
+import com.pt.core.persistence.Page;
+import com.pt.core.service.CrudService;
+import com.pt.modules.work.workorderdetail.entity.WorkOrderDetail;
+import com.pt.modules.work.workorderdetail.mapper.WorkOrderDetailMapper;
+import com.pt.modules.work.workorderretur.entity.WorkOrderRetur;
+import com.pt.modules.work.workorderretur.entity.WorkOrderReturDetail;
+import com.pt.modules.work.workorderretur.mapper.WorkOrderReturDetailMapper;
+import com.pt.modules.work.workorderretur.mapper.WorkOrderReturMapper;
+
+
+/**
+ * 工作计划Service
+ * @author 郑利
+ * @version 2018-10-13
+ */
+@Service
+@Transactional(readOnly = true)
+public class WorkOrderReturService extends CrudService<WorkOrderReturMapper, WorkOrderRetur> {
+	
+	@Autowired
+	private WorkOrderReturDetailMapper workOrderDetailMapper;
+	public WorkOrderRetur get(String id) {
+		return super.get(id);
+	}
+	
+	public List<WorkOrderRetur> findList(WorkOrderRetur WorkOrderRetur) {
+		return super.findList(WorkOrderRetur);
+	}
+	
+	public Page<WorkOrderRetur> findPage(Page<WorkOrderRetur> page, WorkOrderRetur WorkOrderRetur) {
+		return super.findPage(page, WorkOrderRetur);
+	}
+	
+	@Transactional(readOnly = false)
+	public void save(WorkOrderRetur WorkOrderRetur) {
+		super.save(WorkOrderRetur);
+	}
+	
+	@Transactional(readOnly = false)
+	public void delete(WorkOrderRetur WorkOrderRetur) {
+		super.delete(WorkOrderRetur);
+	}
+	@Transactional(readOnly = false)
+	public void saves(WorkOrderRetur WorkOrderRetur) {
+		super.save(WorkOrderRetur);
+		for (WorkOrderReturDetail workOrderDetail : WorkOrderRetur.getWorkOrderDetailList()){
+			if (workOrderDetail.getId() == null){
+				continue;
+			}
+			if (WorkOrderDetail.DEL_FLAG_NORMAL.equals(workOrderDetail.getDelFlag())){
+				if (StringUtils.isBlank(workOrderDetail.getId())){
+					workOrderDetail.setWorkOrderSonId(WorkOrderRetur.getId());
+					workOrderDetail.preInsert();
+					workOrderDetailMapper.insert(workOrderDetail);
+				}else{
+					workOrderDetail.preUpdate();
+					workOrderDetailMapper.update(workOrderDetail);
+				}
+			}else{
+				workOrderDetailMapper.delete(workOrderDetail);
+			}
+		}
+	}
+	/**
+	 * @param workOrderId
+	 * @return
+	 */
+	public WorkOrderRetur findByOrderId(String workOrderId) {
+		
+		return mapper.findByOrderId(workOrderId);
+	}
+
+	
+	public void disPatchById(WorkOrderRetur WorkOrderRetur) {
+		mapper.disPatchById(WorkOrderRetur);
+		
+	}
+
+	/**
+	 * @param workOrderRetur
+	 */
+	@Transactional(readOnly = false)
+	public void updateFinishSche(WorkOrderRetur workOrderRetur) {
+		mapper.updateFinishSche(workOrderRetur);
+		
+	}
+	
+	/**
+	 * 获取生产看板数据
+	 * @param workOrderRetur
+	 */
+	public String statsOfWO() {
+		int unstart = mapper.getOfUnStart();
+		int begin = mapper.getOfBegin();
+		int end = mapper.getOfEnd();
+		return "["+unstart+","+begin+","+end+"]";
+		
+	}
+	
+	/**
+	 * 获取生产看板数据
+	 * @param workOrderRetur
+	 */
+	public List<String> getOfProduct() {
+		String categories = "";
+		String data = "";
+		String item2 = "";
+		List<String> list = new ArrayList();
+		List<WorkOrderRetur> dataList = mapper.getOfProduct();
+		if(dataList.isEmpty()){
+			return list;
+		}
+		for(WorkOrderRetur a : dataList){
+			categories += a.getMdsItemName()+",";
+			data += a.getFinishSche().substring(0,a.getFinishSche().length()-1)+",";
+			item2 += "100,";
+		}
+		if(categories.length()>1){
+			categories = categories.substring(0, categories.length()-1);
+		}
+		if(data.length()>1){
+			data = data.substring(0, data.length()-1);
+		}
+		if(item2.length()>1){
+			item2 = item2.substring(0, item2.length()-1);
+		}
+		list.add(categories);
+		list.add(data);
+		list.add(item2);
+		return list;
+		
+	}
+	
+}

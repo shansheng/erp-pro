@@ -1,0 +1,450 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.mrp.mrpwo.mapper.MrpWoMapper">
+    
+	<sql id="mrpWoColumns">
+		a.id AS "id",
+		a.wo_no AS "woNo",
+		a.wo_date_str AS "woDateStr",
+		a.mds_item_id AS "mdsItemId",
+		a.pro_mds_item_id AS "proMdsItemId",
+		a.main_office_id AS "mainOfficeId",
+		a.use_office_id AS "useOfficeId",
+		a.parent_wo_id AS "parentWoId",
+		a.parent_mds_item_id AS "parentMdsItemId",
+		a.wo_note AS "woNote",
+		a.wo_status AS "woStatus",
+		a.plan_type AS "planType",
+		a.req_qty AS "reqQty",
+		a.plan_start_date AS "planStartDate",
+		a.plan_end_date AS "planEndDate",
+		a.actual_qty AS "actualQty",
+		a.actual_start_date AS "actualStartDate",
+		a.actual_end_date AS "actualEndDate",
+		a.gross_req_qty AS "grossReqQty",
+		a.reject_qty AS "rejectQty",
+		a.batch_no AS "batchNo",
+		a.wo_type AS "woType",
+		a.original_mes_wo_id AS "originalMesWoId",
+		a.release_sys_user_id AS "releaseSysUserId",
+		a.release_date AS "releaseDate",
+		a.tree_level AS "treeLevel",
+		a.to_ewo_qty AS "toEwoQty",
+		a.wo_source_type AS "woSourceType",
+		a.pk_qty AS "pkQty",
+		a.from_hr_dept_id AS "fromHrDeptId",
+		a.to_hr_dept_id AS "toHrDeptId",
+		a.require_plan_id AS "requirePlanId",
+		a.yn_gen_pickup AS "ynGenPickup",
+		a.yn_gen_material_requisition AS "ynGenMaterialRequisition",
+		a.mps_mo_id AS "mpsMoId",
+		a.mds_route_id AS "mdsRouteId",
+		a.mission_no AS "missionNo",
+		a.yn_mrp_recalculate AS "ynMrpRecalculate",
+		a.low_level_code AS "lowLevelCode",
+		a.parent_low_level_code AS "parentLowLevelCode",
+		a.mds_bom_instance_id AS "mdsBomInstanceId",
+		a.mrp_wo_priority AS "mrpWoPriority",
+		a.stage_part AS "stagePart",
+		a.last_flag AS "lastFlag",
+		a.totla_ct AS "totlaCt",
+		a.shop_route AS "shopRoute",
+		a.shop_no AS "shopNo",
+		a.individual_qty AS "individualQty",
+		a.task_no AS "taskNo",
+		a.outer_status AS "outerStatus",
+		a.transfer_status AS "transferStatus",
+		a.transfer_qty AS "transferQty",
+		a.manufacture_order AS "manufactureOrder",
+		a.output_actual_qty AS "outputActualQty",
+		a.rout_prepare_status AS "routPrepareStatus",
+		a.quota_run_time AS "quotaRunTime",
+		a.route_material_id AS "routeMaterialId",
+		a.click_qty AS "clickQty",
+		a.stage AS "stage",
+		a.work_line AS "workLine",
+		a.submit_approve_user_id AS "submitApproveUserId",
+		a.submit_approve_date AS "submitApproveDate",
+		a.need_approve_user_ids AS "needApproveUserIds",
+		a.approve_user_id AS "approveUserId",
+		a.approve_idea AS "approveIdea",
+		a.approve_date AS "approveDate",
+		a.item_01 AS "item01",
+		a.item_02 AS "item02",
+		a.item_03 AS "item03",
+		a.item_04 AS "item04",
+		a.item_05 AS "item05",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag",
+		mi.item_code AS "mdsItemCode",
+		mi.item_name AS "mdsItemName",
+		mii.item_code AS "proMdsItemCode",
+		mii.item_name AS "proMdsItemName",
+		get_dict_label("wo_status",a.wo_status) AS "woStatusLabel",
+		so.name AS "mainOfficeName",
+		SUBSTR(a.wo_date_str,1,4) AS yearStr,
+		SUBSTR(a.wo_date_str,5) AS monthStr
+		
+	</sql>
+	
+	<sql id="mrpWoJoins">
+		Left Join mds_item mi On a.mds_item_id=mi.id
+		Left Join mds_item mii On a.pro_mds_item_id=mii.id
+		Left Join sys_office so On a.main_office_id=so.id
+	</sql>
+	
+    
+	<select id="get" resultType="MrpWo" >
+		SELECT 
+			<include refid="mrpWoColumns"/>
+		FROM mrp_wo a
+		<include refid="mrpWoJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="MrpWo" >
+		SELECT 
+			<include refid="mrpWoColumns"/>
+		FROM mrp_wo a
+		<include refid="mrpWoJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			${dataScope}
+			<if test="woNo != null and woNo != ''">
+				AND a.wo_no = #{woNo}
+			</if>
+			<if test="yearStr != null and yearStr != ''">
+				AND SUBSTR(a.wo_date_str,1,4) like CONCAT('%',#{yearStr},'%')
+			</if>
+			<if test="monthStr != null and monthStr != ''">
+				AND SUBSTR(a.wo_date_str,5) like CONCAT('%',#{monthStr},'%')
+			</if>
+			<if test="planStartDate != null and planStartDate != ''">
+				AND a.plan_start_date >= #{planStartDate}
+			</if>
+			<if test="planEndDate != null and planEndDate != ''">
+				<![CDATA[AND a.plan_end_date <= #{planEndDate}]]>
+			</if>
+			<if test="mdsItemId != null and mdsItemId != ''">
+				AND a.mds_item_id like CONCAT('%',#{mdsItemId},'%')
+			</if>
+			<if test="proMdsItemId != null and proMdsItemId != ''">
+				AND a.pro_mds_item_id like CONCAT('%',#{proMdsItemId},'%')
+			</if>
+			<if test="mdsItemCode != null and mdsItemCode != ''">
+				AND mi.item_code like CONCAT('%',#{mdsItemCode},'%')
+			</if>
+			<if test="proMdsItemCode != null and proMdsItemCode != ''">
+				AND mii.item_code like CONCAT('%',#{proMdsItemCode},'%')
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="MrpWo" >
+		SELECT 
+			<include refid="mrpWoColumns"/>
+		FROM mrp_wo a
+		<include refid="mrpWoJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			${dataScope}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO mrp_wo(
+			id,
+			wo_no,
+			wo_date_str,
+			mds_item_id,
+			pro_mds_item_id,
+			main_office_id,
+			use_office_id,
+			parent_wo_id,
+			parent_mds_item_id,
+			wo_note,
+			wo_status,
+			plan_type,
+			req_qty,
+			plan_start_date,
+			plan_end_date,
+			actual_qty,
+			actual_start_date,
+			actual_end_date,
+			gross_req_qty,
+			reject_qty,
+			batch_no,
+			wo_type,
+			original_mes_wo_id,
+			release_sys_user_id,
+			release_date,
+			tree_level,
+			to_ewo_qty,
+			wo_source_type,
+			pk_qty,
+			from_hr_dept_id,
+			to_hr_dept_id,
+			require_plan_id,
+			yn_gen_pickup,
+			yn_gen_material_requisition,
+			mps_mo_id,
+			mds_route_id,
+			mission_no,
+			yn_mrp_recalculate,
+			low_level_code,
+			parent_low_level_code,
+			mds_bom_instance_id,
+			mrp_wo_priority,
+			stage_part,
+			last_flag,
+			totla_ct,
+			shop_route,
+			shop_no,
+			individual_qty,
+			task_no,
+			outer_status,
+			transfer_status,
+			transfer_qty,
+			manufacture_order,
+			output_actual_qty,
+			rout_prepare_status,
+			quota_run_time,
+			route_material_id,
+			click_qty,
+			stage,
+			work_line,
+			submit_approve_user_id,
+			submit_approve_date,
+			need_approve_user_ids,
+			approve_user_id,
+			approve_idea,
+			approve_date,
+			item_01,
+			item_02,
+			item_03,
+			item_04,
+			item_05,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks,
+			del_flag
+		) VALUES (
+			#{id},
+			#{woNo},
+			#{woDateStr},
+			#{mdsItemId},
+			#{proMdsItemId},
+			#{mainOfficeId},
+			#{useOfficeId},
+			#{parentWoId},
+			#{parentMdsItemId},
+			#{woNote},
+			#{woStatus},
+			#{planType},
+			#{reqQty},
+			#{planStartDate},
+			#{planEndDate},
+			#{actualQty},
+			#{actualStartDate},
+			#{actualEndDate},
+			#{grossReqQty},
+			#{rejectQty},
+			#{batchNo},
+			#{woType},
+			#{originalMesWoId},
+			#{releaseSysUserId},
+			#{releaseDate},
+			#{treeLevel},
+			#{toEwoQty},
+			#{woSourceType},
+			#{pkQty},
+			#{fromHrDeptId},
+			#{toHrDeptId},
+			#{requirePlanId},
+			#{ynGenPickup},
+			#{ynGenMaterialRequisition},
+			#{mpsMoId},
+			#{mdsRouteId},
+			#{missionNo},
+			#{ynMrpRecalculate},
+			#{lowLevelCode},
+			#{parentLowLevelCode},
+			#{mdsBomInstanceId},
+			#{mrpWoPriority},
+			#{stagePart},
+			#{lastFlag},
+			#{totlaCt},
+			#{shopRoute},
+			#{shopNo},
+			#{individualQty},
+			#{taskNo},
+			#{outerStatus},
+			#{transferStatus},
+			#{transferQty},
+			#{manufactureOrder},
+			#{outputActualQty},
+			#{routPrepareStatus},
+			#{quotaRunTime},
+			#{routeMaterialId},
+			#{clickQty},
+			#{stage},
+			#{workLine},
+			#{submitApproveUserId},
+			#{submitApproveDate},
+			#{needApproveUserIds},
+			#{approveUserId},
+			#{approveIdea},
+			#{approveDate},
+			#{item01},
+			#{item02},
+			#{item03},
+			#{item04},
+			#{item05},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remarks},
+			#{delFlag}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE mrp_wo SET 	
+			wo_no = #{woNo},
+			wo_date_str = #{woDateStr},
+			mds_item_id = #{mdsItemId},
+			pro_mds_item_id = #{proMdsItemId},
+			main_office_id = #{mainOfficeId},
+			use_office_id = #{useOfficeId},
+			parent_wo_id = #{parentWoId},
+			parent_mds_item_id = #{parentMdsItemId},
+			wo_note = #{woNote},
+			wo_status = #{woStatus},
+			plan_type = #{planType},
+			req_qty = #{reqQty},
+			plan_start_date = #{planStartDate},
+			plan_end_date = #{planEndDate},
+			actual_qty = #{actualQty},
+			actual_start_date = #{actualStartDate},
+			actual_end_date = #{actualEndDate},
+			gross_req_qty = #{grossReqQty},
+			reject_qty = #{rejectQty},
+			batch_no = #{batchNo},
+			wo_type = #{woType},
+			original_mes_wo_id = #{originalMesWoId},
+			release_sys_user_id = #{releaseSysUserId},
+			release_date = #{releaseDate},
+			tree_level = #{treeLevel},
+			to_ewo_qty = #{toEwoQty},
+			wo_source_type = #{woSourceType},
+			pk_qty = #{pkQty},
+			from_hr_dept_id = #{fromHrDeptId},
+			to_hr_dept_id = #{toHrDeptId},
+			require_plan_id = #{requirePlanId},
+			yn_gen_pickup = #{ynGenPickup},
+			yn_gen_material_requisition = #{ynGenMaterialRequisition},
+			mps_mo_id = #{mpsMoId},
+			mds_route_id = #{mdsRouteId},
+			mission_no = #{missionNo},
+			yn_mrp_recalculate = #{ynMrpRecalculate},
+			low_level_code = #{lowLevelCode},
+			parent_low_level_code = #{parentLowLevelCode},
+			mds_bom_instance_id = #{mdsBomInstanceId},
+			mrp_wo_priority = #{mrpWoPriority},
+			stage_part = #{stagePart},
+			last_flag = #{lastFlag},
+			totla_ct = #{totlaCt},
+			shop_route = #{shopRoute},
+			shop_no = #{shopNo},
+			individual_qty = #{individualQty},
+			task_no = #{taskNo},
+			outer_status = #{outerStatus},
+			transfer_status = #{transferStatus},
+			transfer_qty = #{transferQty},
+			manufacture_order = #{manufactureOrder},
+			output_actual_qty = #{outputActualQty},
+			rout_prepare_status = #{routPrepareStatus},
+			quota_run_time = #{quotaRunTime},
+			route_material_id = #{routeMaterialId},
+			click_qty = #{clickQty},
+			stage = #{stage},
+			work_line = #{workLine},
+			submit_approve_user_id = #{submitApproveUserId},
+			submit_approve_date = #{submitApproveDate},
+			need_approve_user_ids = #{needApproveUserIds},
+			approve_user_id = #{approveUserId},
+			approve_idea = #{approveIdea},
+			approve_date = #{approveDate},
+			item_01 = #{item01},
+			item_02 = #{item02},
+			item_03 = #{item03},
+			item_04 = #{item04},
+			item_05 = #{item05},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remarks = #{remarks}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM mrp_wo
+		WHERE id = #{id}
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE mrp_wo SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="MrpWo" statementType="STATEMENT">
+		select * FROM mrp_wo  where ${propertyName} = '${value}'
+	</select>
+	
+	<!-- 调用存储过程 -->
+	<select id="mrpWoDispatch" parameterType="java.util.Map" statementType="CALLABLE">  
+		{call pt.mrp_wo_dispatch_p(
+				  #{i_wo_id,jdbcType=VARCHAR,mode=IN},  
+				  #{i_user_id,jdbcType=CHAR,mode=IN},  
+				  #{o_return_Int,jdbcType=INTEGER,mode=OUT},
+				  #{o_return_String,jdbcType=VARCHAR,mode=OUT}
+			  )
+    	}
+	</select>
+	<select id="getWoNo" parameterType="java.util.Map" statementType="CALLABLE">  
+		{call pt.sys_auto_code_p(
+				  #{i_auto_code,jdbcType=VARCHAR,mode=IN},
+				  #{i_prefix,jdbcType=VARCHAR,mode=IN},  
+				  #{i_postfix,jdbcType=VARCHAR,mode=IN}, 
+				  #{i_user_id,jdbcType=CHAR,mode=IN},
+				  #{o_return_code,jdbcType=VARCHAR,mode=OUT}
+			  )
+    	}
+	</select>
+</mapper>

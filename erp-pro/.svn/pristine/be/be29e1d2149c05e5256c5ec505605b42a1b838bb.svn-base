@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.templan.templanapplication.mapper.TestTemporaryPlanMapper">
+    
+	<sql id="testTemporaryPlanColumns">
+		a.id AS "id",
+		a.code AS "code",
+		a.department_assessing AS "departmentAssessing",
+		a.department_assessing_date AS "departmentAssessingDate",
+		a.deputy_assessing AS "deputyAssessing",
+		a.deputy_assessing_date AS "deputyAssessingDate",
+		a.state AS "state",
+		a.column1 AS "column1",
+		a.column2 AS "column2",
+		a.column3 AS "column3",
+		a.column4 AS "column4",
+		a.column5 AS "column5",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag"
+	</sql>
+	
+	<sql id="testTemporaryPlanJoins">
+		
+	</sql>
+	
+    
+	<select id="get" resultType="TestTemporaryPlan" >
+		SELECT 
+			<include refid="testTemporaryPlanColumns"/>
+		FROM test_temporary_plan a
+		<include refid="testTemporaryPlanJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="TestTemporaryPlan" >
+		SELECT 
+			<include refid="testTemporaryPlanColumns"/>
+		FROM test_temporary_plan a
+		<include refid="testTemporaryPlanJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			${dataScope}
+			<if test="code != null and code != ''">
+				AND a.code LIKE 
+					<if test="dbName == 'oracle'">'%'||#{code}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{code}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{code},'%')</if>
+			</if>
+			<if test="state != null and state != ''">
+				AND a.state = #{state}
+			</if>
+			<if test="createDate != null and createDate != '' and createDateEnd != null and createDateEnd != ''">
+				AND a.create_date between #{createDate} and #{createDateEnd}+1-1/24/60/60
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="TestTemporaryPlan" >
+		SELECT 
+			<include refid="testTemporaryPlanColumns"/>
+		FROM test_temporary_plan a
+		<include refid="testTemporaryPlanJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			${dataScope}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO test_temporary_plan(
+			id,
+			code,
+			department_assessing,
+			department_assessing_date,
+			deputy_assessing,
+			deputy_assessing_date,
+			state,
+			column1,
+			column2,
+			column3,
+			column4,
+			column5,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks,
+			del_flag
+		) VALUES (
+			#{id},
+			#{code},
+			#{departmentAssessing},
+			#{departmentAssessingDate},
+			#{deputyAssessing},
+			#{deputyAssessingDate},
+			#{state},
+			#{column1},
+			#{column2},
+			#{column3},
+			#{column4},
+			#{column5},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remarks},
+			#{delFlag}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE test_temporary_plan SET 	
+			code = #{code},
+			department_assessing = #{departmentAssessing},
+			department_assessing_date = #{departmentAssessingDate},
+			deputy_assessing = #{deputyAssessing},
+			deputy_assessing_date = #{deputyAssessingDate},
+			state = #{state},
+			column1 = #{column1},
+			column2 = #{column2},
+			column3 = #{column3},
+			column4 = #{column4},
+			column5 = #{column5},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remarks = #{remarks}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM test_temporary_plan
+		WHERE id = #{id}
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE test_temporary_plan SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	<select id="getByCode" resultType="TestTemporaryPlan" >
+		SELECT 
+			<include refid="testTemporaryPlanColumns"/>
+		FROM test_temporary_plan a
+		<include refid="testTemporaryPlanJoins"/>
+		WHERE a.code = #{code}
+	</select>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="TestTemporaryPlan" statementType="STATEMENT">
+		select * FROM test_temporary_plan  where ${propertyName} = '${value}'
+	</select>
+	
+	<update id="doSubmit">
+		UPDATE test_temporary_plan SET 	
+			state = #{state},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate}
+		WHERE id = #{id}
+	</update>
+</mapper>

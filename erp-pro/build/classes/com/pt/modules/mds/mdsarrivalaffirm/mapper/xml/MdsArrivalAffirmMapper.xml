@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="com.pt.modules.mds.mdsarrivalaffirm.mapper.MdsArrivalAffirmMapper">
+
+	<sql id="mdsArrivalAffirmColumns">
+		a.id AS "id",
+		a.mds_item_id AS "mdsItemId",
+		a.classify AS
+		"classify",
+		a.item_code AS "itemCode",
+		a.item_name AS "itemName",
+		a.normal_field AS "normalField",
+		a.modelnm AS "modelnm",
+		a.specs AS
+		"specs",
+		a.purchase_amount AS "purchaseAmount",
+		a.required_date AS
+		"requiredDate",
+		a.state AS "state",
+		a.procurement_way AS
+		"procurementWay",
+		a.from_id AS "fromId",
+		a.source_type AS "sourceType",
+		a.column2 AS "column2",
+		a.column3 AS "column3",
+		a.column4 AS "column4",
+		a.column5 AS "column5",
+		a.create_by AS "createBy.id",
+		a.create_date AS
+		"createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS
+		"updateDate",
+		a.supplier_id AS "supplierId",
+		a.supplier_name AS
+		"supplierName",
+		a.arrivalnum AS "arrivalnum",
+		a.arrival_by AS
+		"arrivalBy",
+		a.arrival_date AS "arrivalDate",
+		a.particulars AS
+		"particulars",
+		purchase_amount-arrivalnum AS "arrivalnumNew"
+	</sql>
+
+	<sql id="mdsArrivalAffirmJoins">
+
+	</sql>
+
+
+	<select id="get" resultType="MdsArrivalAffirm">
+		SELECT
+		<include refid="mdsArrivalAffirmColumns" />
+		FROM MDS_PROCUREMENT_PLAN_V a
+		<include refid="mdsArrivalAffirmJoins" />
+		WHERE a.id = #{id}
+	</select>
+
+	<select id="findList" resultType="MdsArrivalAffirm">
+		SELECT
+		<include refid="mdsArrivalAffirmColumns" />
+		FROM MDS_PROCUREMENT_PLAN_V a
+		<include refid="mdsArrivalAffirmJoins" />
+		<where>
+			a.state = '30'
+			AND a.purchase_amount > a.arrivalnum
+			${dataScope}
+			<if test="itemCode != null and itemCode != ''">
+				AND a.item_code LIKE
+				<if test="dbName == 'oracle'">'%'||#{itemCode}||'%'</if>
+				<if test="dbName == 'mssql'">'%'+#{itemCode}+'%'</if>
+				<if test="dbName == 'mysql'">concat('%',#{itemCode},'%')</if>
+			</if>
+			<if test="itemName != null and itemName != ''">
+				AND a.item_name LIKE
+				<if test="dbName == 'oracle'">'%'||#{itemName}||'%'</if>
+				<if test="dbName == 'mssql'">'%'+#{itemName}+'%'</if>
+				<if test="dbName == 'mysql'">concat('%',#{itemName},'%')</if>
+			</if>
+			<if
+				test="beginRequiredDate != null and endRequiredDate != null and beginRequiredDate != '' and endRequiredDate != ''">
+				AND a.required_date BETWEEN #{beginRequiredDate} AND
+				#{endRequiredDate}
+			</if>
+			<!-- <if test="supplierId != null and supplierId != ''">
+				AND a.supplier_id LIKE
+				<if test="dbName == 'oracle'">'%'||#{supplierId}||'%'</if>
+				<if test="dbName == 'mssql'">'%'+#{supplierId}+'%'</if>
+				<if test="dbName == 'mysql'">concat('%',#{supplierId},'%')</if>
+			</if> -->
+			<if test="supplierId != null and supplierId != ''">
+				AND a.supplier_id = #{supplierId}
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy},a.update_date DESC
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+
+	<select id="findAllList" resultType="MdsArrivalAffirm">
+		SELECT
+		<include refid="mdsArrivalAffirmColumns" />
+		FROM mds_procurement_plan a
+		<include refid="mdsArrivalAffirmJoins" />
+		<where>
+
+			${dataScope}
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+
+	<insert id="insert">
+		INSERT INTO mds_procurement_plan(
+		id,
+		mds_item_id,
+		classify,
+		item_code,
+		item_name,
+		normal_field,
+		modelnm,
+		specs,
+		purchase_amount,
+		required_date,
+		state,
+		procurement_way,
+		from_id,
+		source_type,
+		column2,
+		column3,
+		column4,
+		column5,
+		create_by,
+		create_date,
+		update_by,
+		update_date,
+		supplier_id,
+		supplier_name,
+		arrivalnum,
+		arrival_by,
+		arrival_date
+		) VALUES (
+		#{id},
+		#{mdsItemId},
+		#{classify},
+		#{itemCode},
+		#{itemName},
+		#{normalField},
+		#{modelnm},
+		#{specs},
+		#{purchaseAmount},
+		#{requiredDate},
+		#{state},
+		#{procurementWay},
+		#{fromId},
+		#{sourceType},
+		#{column2},
+		#{column3},
+		#{column4},
+		#{column5},
+		#{createBy.id},
+		#{createDate},
+		#{updateBy.id},
+		#{updateDate},
+		#{supplierId},
+		#{supplierName},
+		#{arrivalnum},
+		#{arrivalBy},
+		#{arrivalDate}
+		)
+	</insert>
+
+	<update id="update">
+		UPDATE mds_procurement_plan SET
+		arrivalnum = #{arrivalnum},
+		arrival_by = #{arrivalBy},
+		arrival_date = #{arrivalDate},
+		finish_state = #{finishState}
+		WHERE id = #{id}
+	</update>
+
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="MdsArrivalAffirm"
+		statementType="STATEMENT">
+		select * FROM mds_procurement_plan where ${propertyName}
+		= '${value}'
+	</select>
+
+</mapper>

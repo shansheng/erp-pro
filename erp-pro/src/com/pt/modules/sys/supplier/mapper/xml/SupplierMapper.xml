@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.sys.supplier.mapper.SupplierMapper">
+    
+	<sql id="supplierColumns">
+		a.id AS "id",
+		a.supplier_no AS "supplierNo",
+		a.su_name AS "suName",
+		a.short_name AS "shortName",
+		a.linkman AS "linkman",
+		a.phone AS "phone",
+		a.su_class AS "suClass",
+		a.valid AS "valid",
+		a.industry AS "industry",
+		a.agent AS "agent",
+		a.payment AS "payment",
+		a.bank_name AS "bankName",
+		a.bank_log AS "bankLog",
+		a.region AS "region",
+		a.postcode AS "postcode",
+		a.address AS "address",
+		a.remake AS "remake",
+		su.name as "agentName"
+	</sql>
+	
+	<sql id="supplierJoins">
+		
+		LEFT JOIN sys_user su ON su.id = a.agent
+	</sql>
+	
+    
+	<select id="get" resultType="Supplier" >
+		SELECT 
+			<include refid="supplierColumns"/>
+		FROM supplier a
+		<include refid="supplierJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="Supplier" >
+		SELECT 
+			<include refid="supplierColumns"/>
+		FROM supplier a
+		<include refid="supplierJoins"/>
+		<where>
+			
+			${dataScope}
+			<if test="supplierNo != null and supplierNo != ''">
+				AND a.supplier_no LIKE 
+					<if test="dbName == 'oracle'">'%'||#{supplierNo}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{supplierNo}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{supplierNo},'%')</if>
+			</if>
+			<if test="suName != null and suName != ''">
+				AND a.su_name LIKE 
+					<if test="dbName == 'oracle'">'%'||#{suName}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{suName}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{suName},'%')</if>
+			</if>
+			<if test="shortName != null and shortName != ''">
+				AND a.short_name LIKE 
+					<if test="dbName == 'oracle'">'%'||#{shortName}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{shortName}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{shortName},'%')</if>
+			</if>
+			<if test="linkman != null and linkman != ''">
+				AND a.linkman LIKE 
+					<if test="dbName == 'oracle'">'%'||#{linkman}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{linkman}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{linkman},'%')</if>
+			</if>
+			<if test="phone != null and phone != ''">
+				AND a.phone LIKE 
+					<if test="dbName == 'oracle'">'%'||#{phone}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{phone}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{phone},'%')</if>
+			</if>
+			<if test="suClass != null and suClass != ''">
+				AND a.su_class LIKE 
+					<if test="dbName == 'oracle'">'%'||#{suClass}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{suClass}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{suClass},'%')</if>
+			</if>
+			<if test="agent != null and agent != ''">
+				AND a.agent LIKE 
+					#{agent}
+			</if>
+			<if test="region != null and region != ''">
+				AND a.region LIKE 
+					<if test="dbName == 'oracle'">'%'||#{region}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{region}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{region},'%')</if>
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="Supplier" >
+		SELECT 
+			<include refid="supplierColumns"/>
+		FROM supplier a
+		<include refid="supplierJoins"/>
+		<where>
+			
+			${dataScope}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO supplier(
+			id,
+			supplier_no,
+			su_name,
+			short_name,
+			linkman,
+			phone,
+			su_class,
+			valid,
+			industry,
+			agent,
+			payment,
+			bank_name,
+			bank_log,
+			region,
+			postcode,
+			address,
+			remake
+		) VALUES (
+			#{id},
+			#{supplierNo},
+			#{suName},
+			#{shortName},
+			#{linkman},
+			#{phone},
+			#{suClass},
+			#{valid},
+			#{industry},
+			#{agent},
+			#{payment},
+			#{bankName},
+			#{bankLog},
+			#{region},
+			#{postcode},
+			#{address},
+			#{remake}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE supplier SET 	
+			supplier_no = #{supplierNo},
+			su_name = #{suName},
+			short_name = #{shortName},
+			linkman = #{linkman},
+			phone = #{phone},
+			su_class = #{suClass},
+			valid = #{valid},
+			industry = #{industry},
+			agent = #{agent},
+			payment = #{payment},
+			bank_name = #{bankName},
+			bank_log = #{bankLog},
+			region = #{region},
+			postcode = #{postcode},
+			address = #{address},
+			remake = #{remake}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM supplier
+		WHERE id = #{id}
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE supplier SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="Supplier" statementType="STATEMENT">
+		select * FROM supplier  where ${propertyName} = '${value}'
+	</select>
+	
+</mapper>

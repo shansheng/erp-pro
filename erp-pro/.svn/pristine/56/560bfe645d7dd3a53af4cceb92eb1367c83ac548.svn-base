@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.wms.wmsinventory.mapper.WmsInventoryMapper">
+    
+	<sql id="wmsInventoryColumns">
+		a.id AS "id",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag",
+		a.inventory_code AS "inventoryCode",
+		a.inventory_name AS "inventoryName",
+		a.sys_office_id AS "sysOfficeId",
+		a.item_01 AS "item_01",
+		a.item_02 AS "item_02",
+		a.item_03 AS "item_03",
+		a.item_04 AS "item_04",
+		a.item_05 AS "item_05",
+		so.name AS "sysOfficeName"
+	</sql>
+	
+	<sql id="wmsInventoryJoins">
+		LEFT JOIN sys_office so ON so.id=a.sys_office_id
+	</sql>
+	
+    
+	<select id="get" resultType="WmsInventory" >
+		SELECT 
+			<include refid="wmsInventoryColumns"/>
+		FROM wms_inventory a
+		<include refid="wmsInventoryJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="WmsInventory" >
+		SELECT 
+			<include refid="wmsInventoryColumns"/>
+		FROM wms_inventory a
+		<include refid="wmsInventoryJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			${dataScope}
+			<if test="inventoryCode != null and inventoryCode != ''">
+				AND a.inventory_code like CONCAT('%',#{inventoryCode},'%')
+			</if>
+			<if test="inventoryName != null and inventoryName != ''">
+				AND a.inventory_name like CONCAT('%',#{inventoryName},'%')
+			</if>
+			<if test="sysOfficeId != null and sysOfficeId != ''">
+				AND a.sys_office_id = #{sysOfficeId}
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.inventory_code
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="WmsInventory" >
+		SELECT 
+			<include refid="wmsInventoryColumns"/>
+		FROM wms_inventory a
+		<include refid="wmsInventoryJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			${dataScope}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.inventory_code
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO wms_inventory(
+			id,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks,
+			del_flag,
+			inventory_code,
+			inventory_name,
+			sys_office_id,
+			item_01,
+			item_02,
+			item_03,
+			item_04,
+			item_05
+		) VALUES (
+			#{id},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remarks},
+			#{delFlag},
+			#{inventoryCode},
+			#{inventoryName},
+			#{sysOfficeId},
+			#{item_01},
+			#{item_02},
+			#{item_03},
+			#{item_04},
+			#{item_05}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE wms_inventory SET 	
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remarks = #{remarks},
+			inventory_code = #{inventoryCode},
+			inventory_name = #{inventoryName},
+			sys_office_id = #{sysOfficeId},
+			item_01 = #{item_01},
+			item_02 = #{item_02},
+			item_03 = #{item_03},
+			item_04 = #{item_04},
+			item_05 = #{item_05}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM wms_inventory
+		WHERE id = #{id}
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE wms_inventory SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="WmsInventory" statementType="STATEMENT">
+		select * FROM wms_inventory  where ${propertyName} = '${value}'
+	</select>
+	
+</mapper>

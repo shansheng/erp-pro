@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.mds.mdsitem.mapper.MdsItemMapper">
+    
+	<sql id="mdsItemColumns">
+		a.id AS "id",
+		a.item_code AS "itemCode",
+		a.item_name AS "itemName",
+		a.item_version AS "itemVersion",
+		a.item_type AS "itemType",
+		a.source_type AS "sourceType",
+		a.mds_unit_id AS "mdsUnitId",
+		a.marque AS "marque",
+		a.specs AS "specs",
+		a.tech_condition AS "techCondition",
+		a.oem_supply_flag AS "oemSupplyFlag",
+		a.mps_mode AS "mpsMode",
+		a.batch_mode AS "batchMode",
+		a.key_flag AS "keyFlag",
+		a.make_speed AS "makeSpeed",
+		a.aloc_lt AS "alocLt",
+		a.saf_lt AS "safLt",
+		a.plan_c_lt AS "planCLt",
+		a.plan_v_lt AS "planVLt",
+		a.theory_c_lt AS "theoryCLt",
+		a.theory_v_lt AS "theoryVLt",
+		a.std_cum_lt AS "stdCumLt",
+		a.safety_stock AS "safetyStock",
+		a.tool_type AS "toolType",
+		a.max_level AS "maxLevel",
+		a.item_01 AS "item01",
+		a.item_02 AS "item02",
+		a.item_03 AS "item03",
+		a.item_04 AS "item04",
+		a.item_05 AS "item05",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag",
+		a.model_num as "modelNum",
+		a.normal_field as "normalField",
+		a.out_source_type as "outSourceType",
+		a.sys_office_id AS "office.id", 
+		o.name AS "office.name"
+	</sql>
+	
+	<sql id="mdsItemJoins">
+
+		Left Join sys_office o ON a.sys_office_id = o.id
+	</sql>
+	
+    
+	<select id="get" resultType="MdsItem" >
+		SELECT 
+			<include refid="mdsItemColumns"/>
+		FROM mds_item a
+		<include refid="mdsItemJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	<select id="getByCode" resultType="MdsItem" >
+		SELECT 
+			<include refid="mdsItemColumns"/>
+		FROM mds_item a
+		<include refid="mdsItemJoins"/>
+		WHERE a.item_code = #{itemCode}
+	</select>
+	
+	
+	<select id="getByName" resultType="MdsItem" >
+		SELECT 
+			<include refid="mdsItemColumns"/>
+		FROM mds_item a
+		<include refid="mdsItemJoins"/>
+		WHERE a.item_name = #{itemName}
+	</select>
+	<select id="findList" resultType="MdsItem" >
+		SELECT 
+			<include refid="mdsItemColumns"/>
+		FROM mds_item a
+		<include refid="mdsItemJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			${dataScope}
+			<if test="itemCode != null and itemCode != ''">
+				 AND a.item_code like concat(concat('%',#{itemCode}),'%')
+			</if>
+			<if test="itemName != null and itemName != ''">
+				AND a.item_name like concat(concat('%',#{itemName}),'%')
+			</if>
+			<if test="itemType != null and itemType != ''">
+				AND  instr(#{itemType},a.item_type)>0
+			</if>
+			<if test="sourceType != null and sourceType != ''">
+				AND a.source_type = #{sourceType}
+			</if>
+			<if test="outSourceType != null and outSourceType != '' ">
+			    AND a.out_source_type = #{outSourceType}
+			</if>
+			<if test="office != null and office.id != null and office.id != ''">
+				AND a.sys_office_id = #{office.id}
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.ITEM_CODE DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="MdsItem" >
+		SELECT 
+			<include refid="mdsItemColumns"/>
+		FROM mds_item a
+		<include refid="mdsItemJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			${dataScope}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO mds_item(
+			id,
+			item_code,
+			item_name,
+			item_version,
+			item_type,
+			source_type,
+			out_source_type,
+			mds_unit_id,
+			marque,
+			sys_office_id,
+			specs,
+			tech_condition,
+			oem_supply_flag,
+			mps_mode,
+			batch_mode,
+			key_flag,
+			make_speed,
+			aloc_lt,
+			saf_lt,
+			plan_c_lt,
+			plan_v_lt,
+			theory_c_lt,
+			theory_v_lt,
+			std_cum_lt,
+			safety_stock,
+			tool_type,
+			max_level,
+			item_01,
+			item_02,
+			item_03,
+			item_04,
+			item_05,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks,
+			model_num,
+			normal_field,
+			del_flag
+		) VALUES (
+			#{id},
+			#{itemCode},
+			#{itemName},
+			#{itemVersion},
+			#{itemType},
+			#{sourceType},
+			#{outSourceType},
+			#{mdsUnitId},
+			#{marque},
+			#{office.id},
+			#{specs},
+			#{techCondition},
+			#{oemSupplyFlag},
+			#{mpsMode},
+			#{batchMode},
+			#{keyFlag},
+			#{makeSpeed},
+			#{alocLt},
+			#{safLt},
+			#{planCLt},
+			#{planVLt},
+			#{theoryCLt},
+			#{theoryVLt},
+			#{stdCumLt},
+			#{safetyStock},
+			#{toolType},
+			#{maxLevel},
+			#{item01},
+			#{item02},
+			#{item03},
+			#{item04},
+			#{item05},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remarks},
+			#{modelNum},
+			#{normalField},
+			#{delFlag}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE mds_item SET 	
+			item_code = #{itemCode},
+			item_name = #{itemName},
+			item_version = #{itemVersion},
+			item_type = #{itemType},
+			source_type = #{sourceType},
+			out_source_type =#{outSourceType},
+			mds_unit_id = #{mdsUnitId},
+			marque = #{marque},
+			sys_office_id = #{office.id},
+			specs = #{specs},
+			tech_condition = #{techCondition},
+			oem_supply_flag = #{oemSupplyFlag},
+			mps_mode = #{mpsMode},
+			batch_mode = #{batchMode},
+			key_flag = #{keyFlag},
+			make_speed = #{makeSpeed},
+			aloc_lt = #{alocLt},
+			saf_lt = #{safLt},
+			plan_c_lt = #{planCLt},
+			plan_v_lt = #{planVLt},
+			theory_c_lt = #{theoryCLt},
+			theory_v_lt = #{theoryVLt},
+			std_cum_lt = #{stdCumLt},
+			safety_stock = #{safetyStock},
+			tool_type = #{toolType},
+			max_level = #{maxLevel},
+			item_01 = #{item01},
+			item_02 = #{item02},
+			item_03 = #{item03},
+			item_04 = #{item04},
+			item_05 = #{item05},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remarks = #{remarks},
+			model_num = #{modelNum},
+		  normal_field = #{normalField}
+		WHERE id = #{id}
+	</update>
+	
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		update mds_item set
+		del_flag='1'
+		WHERE id = #{id}
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE mds_item SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="MdsItem" statementType="STATEMENT">
+		select * FROM mds_item  where ${propertyName} = '${value}'
+	</select>
+	
+</mapper>

@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.work.workorderson.mapper.WorkOrderSonMapper">
+    
+	<sql id="workOrderSonColumns">
+		a.id AS "id",
+		a.sys_market_id AS "sysMarketId",
+		a.order_state AS "orderState",
+		A.work_order_id as "workOrderId",
+		a.item01 AS "item01",
+		a.item02 AS "item02",
+		a.item03 AS "item03",
+		a.item04 AS "item04",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remake AS "remake",
+		a.sys_market_list_id AS "sysMarketListId",
+		a.mds_item_id AS "mdsItemId",
+		a.finish_sche as "finishSche",
+		a.shipments_state as "shipmentsState",
+		c.client_name as "clientName",
+		E.ITEM_NAME AS "mdsItemName",
+		E.ITEM_CODE AS "mdsItemCode",
+		E.SPECS AS "mdsItemspecs",
+		E.MODEL_NUM AS "mdsItemmodelNum"
+	</sql>
+	
+	<sql id="workOrderSonJoins">
+		
+LEFT JOIN SYS_MARKET F ON F.ID = A. SYS_MARKET_ID
+LEFT JOIN CLIENT C ON C. ID = F.CLIENT_ID
+LEFT JOIN MDS_ITEM E ON E . ID = a.MDS_ITEM_ID
+	</sql>
+	
+	
+	<select id="getBySysMarketListId" resultType="WorkOrderSon" >
+		SELECT 
+			<include refid="workOrderSonColumns"/>
+		FROM work_order_son a
+		<include refid="workOrderSonJoins"/>
+		WHERE a.sys_market_list_id = #{sysMarketListId} and a.shipments_state='0' and a.finish_sche='100%'
+	</select>
+	
+    
+	<select id="get" resultType="WorkOrderSon" >
+		SELECT 
+			<include refid="workOrderSonColumns"/>
+		FROM work_order_son a
+		<include refid="workOrderSonJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	<select id="findByWorkOrderId" resultType="WorkOrderSon" >
+		SELECT 
+			<include refid="workOrderSonColumns"/>
+		FROM work_order_son a
+		<include refid="workOrderSonJoins"/>
+		WHERE a.work_order_id = #{workOrderId} and a.mds_item_id=#{mdsItemId}  and a.finish_sche='100%'  and a.shipments_state='0'
+	</select>
+	
+	<select id="getByWorkOrderId" resultType="WorkOrderSon" >
+		SELECT 
+			<include refid="workOrderSonColumns"/>
+		FROM work_order_son a
+		<include refid="workOrderSonJoins"/>
+		WHERE a.work_order_id = #{workOrderId}
+	</select>
+	
+	<select id="findByOrderId" resultType="WorkOrderSon" >
+		SELECT 
+			<include refid="workOrderSonColumns"/>
+		FROM work_order_son a
+		<include refid="workOrderSonJoins"/>
+		WHERE a.work_order_id=#{workOrderId}
+	</select>
+	
+	<select id="findList" resultType="WorkOrderSon" >
+		SELECT 
+			<include refid="workOrderSonColumns"/>
+		FROM work_order_son a
+		<include refid="workOrderSonJoins"/>
+		<where>
+			
+			${dataScope}
+			<if test="workOrderId != null and workOrderId != ''">
+				AND a.work_order_id = #{workOrderId}
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="WorkOrderSon" >
+		SELECT 
+			<include refid="workOrderSonColumns"/>
+		FROM work_order_son a
+		<include refid="workOrderSonJoins"/>
+		<where>
+			
+			${dataScope}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+	 <selectKey keyProperty="id" resultType="String" order="BEFORE">
+             select sys_guid() from dual
+        </selectKey>
+		INSERT INTO work_order_son(
+			id,
+			sys_market_id,
+			order_state,
+			work_order_id,
+			item01,
+			item02,
+			item03,
+			item04,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remake,
+			sys_market_list_id,
+			mds_item_id,
+			finish_sche,
+			shipments_state
+		) VALUES (
+			#{id},
+			#{sysMarketId},
+			#{orderState},
+			#{workOrderId},
+			#{item01},
+			#{item02},
+			#{item03},
+			#{item04},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remake},
+			#{sysMarketListId},
+			#{mdsItemId},
+			'0%',
+			#{shipmentsState}
+		)
+	</insert>
+	<update id="updateShipments">
+		UPDATE work_order_son SET 	
+			shipments_state='1'
+		WHERE id = #{id}
+	</update>
+	
+	
+	
+		<update id="disPatchById">
+		UPDATE work_order_son SET 	
+			order_state = #{orderState},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate}
+			
+		WHERE id = #{id}
+	</update>
+	<update id="updates">
+		UPDATE work_order_son SET 	
+			item01 = #{item01},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate}		
+		WHERE id = #{id}
+	</update>
+	
+	
+	<update id="update">
+		UPDATE work_order_son SET 	
+			sys_market_id = #{sysMarketId},
+			order_state = #{orderState},
+			item01 = #{item01},
+			item02 = #{item02},
+			item03 = #{item03},
+			item04 = #{item04},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remake = #{remake},
+			sys_market_list_id = #{sysMarketListId},
+			mds_item_id = #{mdsItemId}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM work_order_son
+		WHERE id = #{id}
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE work_order_son SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="WorkOrderSon" statementType="STATEMENT">
+		select * FROM work_order_son  where ${propertyName} = '${value}'
+	</select>
+	
+</mapper>

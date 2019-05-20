@@ -1,0 +1,311 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.mds.mdsequipmentuser.mapper.MdsEquipmentUserMapper">
+    
+	<sql id="mdsEquipmentUserColumns">
+		a.id AS "id",
+		a.sys_user_id as "sysUserId",
+		a.mds_equipment_id as "mdsEquipmentId",
+		a.item_01 AS "item01",
+		a.item_02 AS "item02",
+		a.item_03 AS "item03",
+		a.item_04 AS "item04",
+		a.item_05 AS "item05",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag",
+		su.id AS "sysUserId",
+		su.login_name AS "loginName",
+		su.name AS "sysUserName"
+	</sql>
+	
+	<sql id="mdsEquipmentUserJoins">
+			LEFT JOIN mds_equipment b ON b.id = a.mds_equipment_id
+			left join sys_user su on a.sys_user_id=su.id
+	</sql>
+	
+	
+	<select id="findUserList" resultType="MdsEquipmentUser" >
+		SELECT 
+			su.id AS "sysUserId",
+			su.no AS "sysUserNo",
+			su.name AS "sysUserName"
+		FROM sys_user su
+		<where>
+			su.del_flag = #{DEL_FLAG_NORMAL}
+			<if test="id != null and id != ''">
+				and not exists (select 1 from mds_equipment_user meu where su.id = meu.sys_user_id and meu.mds_equipment_id = #{id})
+			</if>
+			<if test="sysUserName != null and sysUserName != ''">
+				and su.name LIKE
+				<if test="dbName == 'oracle'">'%'||#{sysUserName}||'%'</if>
+				<if test="dbName == 'mysql'">CONCAT('%', #{sysUserName}, '%')</if>
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY su.no
+			</otherwise>
+		</choose>
+	</select>
+	
+	
+	
+	<select id="getMdsEquipmentUser" resultType="MdsEquipmentUser">
+	SELECT 
+			<include refid="mdsEquipmentUserColumns"/>
+		FROM mds_equipment_user a
+		WHERE a.mds_equipment_id = #{mdsEquipmentId}
+	
+	
+	
+	</select>
+	
+	<select id="findSubList" resultType="MdsEquipmentUser" >
+		SELECT 
+		    meu.id  as "id",
+		    meu.mds_equipment_id as "mdsEquipmentId",
+			su.id AS "sysUserId",
+			su.login_name AS "loginName",
+			su.name AS "sysUserName"
+		FROM sys_user su
+		JOIN mds_equipment_user meu ON su.id = meu.sys_user_id		
+		<where>
+			su.del_flag = #{DEL_FLAG_NORMAL}
+			<if test="mdsEquipmentId != null and mdsEquipmentId != ''">
+				and meu.mds_equipment_id = #{mdsEquipmentId}
+			</if>
+		</where>
+				ORDER BY su.id
+			
+	</select>
+	
+	
+	<select id="selectUser" resultType="MdsEquipmentUser">
+	select 
+	mds_equipment_id,
+	sys_user_id 
+	from mds_equipment_user
+	where mds_equipment_id=#{mdsEquipmentId} 
+	and sys_user_id =#{sysUserId}
+	</select>
+	
+	
+	
+	
+	
+	
+    
+	<select id="get" resultType="MdsEquipmentUser" >
+		SELECT 
+			<include refid="mdsEquipmentUserColumns"/>
+		FROM mds_equipment_user a
+		<include refid="mdsEquipmentUserJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+<select id="findUser" resultType="MdsEquipmentUser" >
+		SELECT 
+			<include refid="mdsEquipmentUserColumns"/>
+		FROM mds_equipment_user a
+		<include refid="mdsEquipmentUserJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			${dataScope}
+			<if test="id != null and id != ''">
+				AND a.mds_equipment_id = #{id}
+			</if>
+			
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.create_date ASC
+			</otherwise>
+		</choose>
+	</select>
+	
+	
+	<select id="findList" resultType="MdsEquipmentUser" >
+		SELECT 
+			<include refid="mdsEquipmentUserColumns"/>
+		FROM mds_equipment_user a
+		<include refid="mdsEquipmentUserJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			${dataScope}
+			<if test="mdsEquipmentId != null and mdsEquipmentId != ''">
+				AND a.mds_equipment_id = #{mdsEquipmentId}
+			</if>
+			<if test="sysUserId != null and sysUserId != ''">
+				AND a.sys_user_id = #{sysUserId}
+			</if>
+			<if test="name != null and name != ''">
+				AND a.name LIKE 
+					<if test="dbName == 'oracle'">'%'||#{name}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{name}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{name},'%')</if>
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.create_date ASC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="MdsEquipmentUser" >
+		SELECT 
+			<include refid="mdsEquipmentUserColumns"/>
+		FROM mds_equipment_user a
+		<include refid="mdsEquipmentUserJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			${dataScope}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.create_date ASC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO mds_equipment_user(
+			id,
+			mds_equipment_id,
+			sys_user_id,
+			item_01,
+			item_02,
+			item_03,
+			item_04,
+			item_05,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks,
+			del_flag,
+			parent_id,
+			parent_ids,
+			name,
+			sort
+		) VALUES (
+			#{id},
+			#{mdsEquipmentId},
+			#{sysUserId},
+			#{item01},
+			#{item02},
+			#{item03},
+			#{item04},
+			#{item05},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remarks},
+			#{delFlag},
+			#{parent.id},
+			#{parentIds},
+			#{name},
+			#{sort}
+		)
+	</insert>
+	
+	
+	
+	
+		<insert id="saveUsers">
+		 <selectKey keyProperty="id" resultType="String" order="BEFORE">
+             select sys_guid() from dual
+        </selectKey>
+		INSERT INTO mds_equipment_user(
+			id,
+			mds_equipment_id,
+			sys_user_id,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			del_flag
+		) VALUES (
+			#{id},
+			#{mdsEquipmentId},
+			#{sysUserId},
+			#{userId},
+			#{createDate},
+			#{userId},
+			#{updateDate},
+			'0'
+		)
+	</insert>
+	<update id="update">
+		UPDATE mds_equipment_user SET 	
+			mds_equipment_id = #{mdsEquipmentId},
+			sys_user_id = #{sysUserId},
+			item_01 = #{item01},
+			item_02 = #{item02},
+			item_03 = #{item03},
+			item_04 = #{item04},
+			item_05 = #{item05},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remarks = #{remarks},
+			parent_id = #{parent.id},
+			parent_ids = #{parentIds},
+			name = #{name},
+			sort = #{sort}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM mds_equipment_user
+		<choose>
+			<when test="id !=null and id != ''">
+				WHERE id = #{id}
+			</when>
+			<otherwise>
+				WHERE mds_equipment_id = #{mdsEquipmentId}
+			</otherwise>
+		</choose>
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE mds_equipment_user SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		<choose>
+			<when test="id !=null and id != ''">
+				WHERE id = #{id}
+			</when>
+			<otherwise>
+				WHERE mds_equipment_id = #{mdsEquipmentId}
+			</otherwise>
+		</choose>
+	</update>
+	<delete id="deluser" >
+	delete from mds_equipment_user WHERE id=#{id}
+	</delete>
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="MdsEquipmentUser" statementType="STATEMENT">
+		select * FROM mds_equipment_user  where ${propertyName} = '${value}'
+	</select>
+	
+</mapper>

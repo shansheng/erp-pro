@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.mat.matbom.mapper.MatBomMapper">
+    
+	<sql id="matBomColumns">
+		a.id AS "id",
+		a.mds_item_id AS "mdsItemId",
+		a.sys_market_id AS "sysMarketId",
+		
+		a.state AS "state",
+		a.sys_market_list_id AS "sysMarketListId",
+		a.column2 AS "column2",
+		a.column3 AS "column3",
+		a.column4 AS "column4",
+		a.column5 AS "column5",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.mat_bom_detail_id AS "matBomDetailId",
+		C.CLIENT_ID AS "clientId",
+		D .CLIENT_NAME AS "clientName",
+		E.ITEM_NAME AS "mdsItemName",
+		E.ITEM_CODE AS "mdsItemCode",
+		E.SPECS AS "mdsItemspecs",
+		E.MODEL_NUM AS "mdsItemmodelNum",
+		F.NUM AS "num"
+	</sql>
+	
+	<sql id="matBomJoins">
+			LEFT JOIN mat_bom_detail b ON b. ID = A .mat_bom_detail_id
+LEFT JOIN SYS_MARKET_LIST F ON F. ID = A .SYS_MARKET_List_ID
+LEFT JOIN SYS_MARKET C ON c. ID = F.SYS_MARKET_ID
+LEFT JOIN CLIENT D ON D . ID = C.CLIENT_ID
+LEFT JOIN MDS_ITEM E ON E . ID = F.MDS_ITEM_ID
+	</sql>
+		<select id="getByMarketItemId" resultType="MatBom" >
+		SELECT 
+			<include refid="matBomColumns"/>
+		FROM mat_bom a
+		<include refid="matBomJoins"/>
+		WHERE a.sys_market_id = #{sysMarketId} and a.mds_item_id=#{mdsItemId}
+	</select>
+    
+	<select id="get" resultType="MatBom" >
+		SELECT 
+			<include refid="matBomColumns"/>
+		FROM mat_bom a
+		<include refid="matBomJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="MatBom" >
+		SELECT 
+			<include refid="matBomColumns"/>
+		FROM mat_bom a
+		<include refid="matBomJoins"/>
+		<where>
+			
+			${dataScope}
+				<if test="clientId != null and clientId != ''">
+				AND C.CLIENT_ID = #{clientId}
+			</if>
+			<if test="mdsItemCode != null and mdsItemCode != ''">
+				AND E.ITEM_CODE like
+					<if test="dbName == 'oracle'">'%'||#{mdsItemCode}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{mdsItemCode}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{mdsItemCode},'%')</if>
+			</if>
+			<if test="mdsItemName != null and mdsItemName != ''">
+				AND E.ITEM_NAME like
+					<if test="dbName == 'oracle'">'%'||#{mdsItemName}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{mdsItemName}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{mdsItemName},'%')</if>
+			</if>
+			<if test="state != null and state != ''">
+				AND a.state = #{state}
+			</if>
+			<if test="matBomDetailId != null and matBomDetailId != ''">
+				AND a.mat_bom_detail_id = #{matBomDetailId}
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.create_date ASC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="MatBom" >
+		SELECT 
+			<include refid="matBomColumns"/>
+		FROM mat_bom a
+		<include refid="matBomJoins"/>
+		<where>
+			
+			${dataScope}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.create_date ASC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO mat_bom(
+			id,
+			mds_item_id,
+			sys_market_id,
+			
+			state,
+			sys_market_list_id,
+			column2,
+			column3,
+			column4,
+			column5,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			mat_bom_detail_id
+		) VALUES (
+			#{id},
+			#{mdsItemId},
+			#{sysMarketId},
+			
+			#{state},
+			#{sysMarketListId},
+			#{column2},
+			#{column3},
+			#{column4},
+			#{column5},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{matBomDetailId}
+		)
+	</insert>
+	
+		<update id="update">
+		UPDATE mat_bom SET
+			state = #{column2},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate}
+		WHERE id = #{id}
+	</update>
+	
+	<!-- bom定版 -->
+	<update id="changeConfirm">
+		UPDATE mat_bom SET
+			state = #{state},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM mat_bom
+		<choose>
+			<when test="id !=null and id != ''">
+				WHERE id = #{id}
+			</when>
+			<otherwise>
+				WHERE mat_bom_detail_id = #{matBomDetailId}
+			</otherwise>
+		</choose>
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE mat_bom SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		<choose>
+			<when test="id !=null and id != ''">
+				WHERE id = #{id}
+			</when>
+			<otherwise>
+				WHERE mat_bom_detail_id = #{matBomDetailId}
+			</otherwise>
+		</choose>
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="MatBom" statementType="STATEMENT">
+		select * FROM mat_bom  where ${propertyName} = '${value}'
+	</select>
+	
+</mapper>

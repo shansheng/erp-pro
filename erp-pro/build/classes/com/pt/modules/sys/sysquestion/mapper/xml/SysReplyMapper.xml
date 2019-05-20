@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.sys.sysquestion.mapper.SysReplyMapper">
+    
+	<sql id="sysReplyColumns">
+		a.id AS "id",
+		a.replier_id AS "replierId",
+		a.text AS "text",
+		a.reply_date AS "replyDate",
+		a.question_id AS "questionId",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		sq.title AS "title",
+		sq.classify AS "classify",
+		sq.subclassification AS "subclassification",
+		sq.sys_office_id AS "sysOfficeId",
+		sq.sys_user_id AS "sysUserId",
+		sq.pro_sys_user_id AS "proSysUserId",
+		sq.status AS "status",
+		sq.text AS "atext",
+		sq.start_user_id AS "startUserId",
+		
+		sq.item1 AS "item1",
+		sq.item2 AS "item2",
+		sq.item3 AS "item3",
+		sq.item4 AS "item4",
+		sq.item5 AS "item5",
+		sq.old_user_id AS "oldUserId",
+		sq.new_user_id AS "newUserId",
+		sq.remake AS "remake",
+		sq.upl AS "upl",
+		so.name as "sysOfficeName",
+		sa.name as "sysUserName",
+		sb.name as "proSysUserName",
+		sc.name as "startUserName",
+		sd.name as "oldUserName",
+		se.name as "newUserName",
+		sg.name as "replierName"
+	</sql>
+	
+	<sql id="sysReplyJoins">
+		left join sys_question sq on sq.id=a.question_id
+		left join sys_office so on so.id=sq.sys_office_id
+		left join sys_user sa on sa.id=sq.sys_user_id
+		left join sys_user sb on sb.id=sq.pro_sys_user_id
+		left join sys_user sc on sc.id=sq.start_user_id
+		left join sys_user sd on sd.id=sq.old_user_id
+		left join sys_user se on se.id=sq.new_user_id
+		left join sys_user sg on sg.id=a.replier_id
+	</sql>
+	
+    
+	<select id="get" resultType="SysReply" >
+		SELECT 
+			<include refid="sysReplyColumns"/>
+		FROM sys_reply a
+		<include refid="sysReplyJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="SysReply" >
+		SELECT
+	a.question_id,
+	a.replier_id,
+	a.text,
+	a.REPLY_DATE as replyDate,
+	sg. NAME AS "replierName"
+FROM
+	sys_reply a
+LEFT JOIN sys_user sg ON sg.id = a.replier_id where a.question_id=#{questionId} 
+UNION ALL
+	SELECT
+		a.sys_user_id,
+		a.pro_sys_user_id,
+		proSysUserId. NAME||
+			'将该问题转移给'||
+			sysUserId. NAME||
+			'| 转移原因 :'||
+			a.TRANSFER_REASON,
+		a.create_date as replyDate,
+	proSysUserId. NAME
+	FROM
+		sys_que_transfer a
+	LEFT JOIN sys_user proSysUserId ON proSysUserId.id = a.pro_sys_user_id
+	LEFT JOIN sys_user sysUserId ON sysUserId.id = a.sys_user_id 
+	where a.SYS_QUE_ID=#{questionId}
+	UNION ALL
+		SELECT
+			a.id,
+			a.create_by,
+			'问题已解决',
+			a.update_date AS replyDate,
+			proSysUserId. NAME
+		FROM
+			sys_question a
+		LEFT JOIN sys_user proSysUserId ON proSysUserId.id = a.create_by
+		WHERE
+			a.id = #{questionId} and status='2'
+	 order by replyDate 
+	</select>
+
+	<select id="findAllList" resultType="SysReply" >
+		SELECT
+			<include refid="sysReplyColumns"/>
+		FROM sys_reply a
+		<include refid="sysReplyJoins"/>
+		<where>
+			${dataScope}
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO sys_reply(
+			id,
+			replier_id,
+			text,
+			reply_date,
+			question_id,
+			create_by, 
+			create_date
+		) VALUES (
+			#{id},
+			#{createBy.id}, 
+			#{text},
+			#{createDate}, 
+			#{questionId},
+			#{createBy.id}, 
+			#{createDate}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE sys_reply SET 	
+			replier_id = #{createBy.id}, 
+			text = #{text},
+			reply_date = #{replyDate},
+			question_id = #{questionId}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM sys_reply
+		WHERE id = #{id}
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE sys_reply SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="SysReply" statementType="STATEMENT">
+		select * FROM sys_reply  where ${propertyName} = '${value}'
+	</select>
+	
+</mapper>

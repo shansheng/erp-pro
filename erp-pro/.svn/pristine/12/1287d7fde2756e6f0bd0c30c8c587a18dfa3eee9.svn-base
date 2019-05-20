@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.wms.wmsmaininstorage.mapper.WmsMainInStorageMapper">
+    
+	<sql id="wmsMainInStorageColumns">
+		a.id AS "id",
+		a.mds_procurment_plan_id AS "mdsProcurmentPlanId",
+		a.qualified AS "qualified",
+		a.update_by AS "updateBy.id",
+		d.name AS "updateBy.name",
+		a.update_date AS "updateDate",
+		a.in_storage AS "inStorage",
+		a.in_storage_by AS "inStorageBy.id",
+		a.in_storage_date AS "inStorageDate",
+		decode(a.in_stoarge_state,1,'已入库','未入库') AS "inStoargeState",
+		b.mds_item_id AS "itemId",
+		c.item_code AS "itemCode",
+		c.item_name AS "itemName",
+		c.NORMAL_FIELD AS "normalField",
+		c.MODEL_NUM AS "modelNum",
+		c.specs AS "specs",
+		b.supplier_name AS "supplierName",
+		'0' as "source"
+	</sql>
+	
+	<sql id="wmsMainInStorageJoins">
+		left join mds_procurement_plan b on b.id = a.mds_procurment_plan_id
+		left join mds_item c on c.id = b.mds_item_id
+		left join SYS_USER d on d.id = a.update_by
+	</sql>
+	
+    
+	<select id="get" resultType="WmsMainInStorage" >
+		SELECT 
+			<include refid="wmsMainInStorageColumns"/>
+		FROM mds_arrival_checkout a
+		<include refid="wmsMainInStorageJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="getSource" resultType="WmsMainInStorage" >
+		SELECT 
+			A . ID AS "id",
+			'' AS "mdsProcurmentPlanId",
+			A .qualified AS "qualified",
+			A.CREATE_BY AS "updateBy.id",
+			D.name AS "updateBy.name",
+			a.CREATE_DATE AS "updateDate",
+			0 AS "inStorage",
+			'' AS "inStorageBy.id",
+			a.CREATE_DATE AS "inStorageDate",
+			DECODE (
+				A .in_stoarge_state,
+				1,
+				'已入库',
+				'未入库'
+			) AS "inStoargeState",
+			a.item_id AS "itemId",
+			b.item_code AS "itemCode",
+			b.item_name AS "itemName",
+			b.NORMAL_FIELD AS "normalField",
+			b.MODEL_NUM AS "modelNum",
+			b.specs AS "specs",
+			'' AS "supplierName",
+			'1' as "source"
+		FROM wms_main_in a
+		LEFT JOIN mds_item b ON b. ID = a.item_id
+		LEFT JOIN SYS_USER D ON D . ID = A .update_by
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="WmsMainInStorage" >
+		(SELECT 
+			<include refid="wmsMainInStorageColumns"/>
+			
+		FROM mds_arrival_checkout a
+		<include refid="wmsMainInStorageJoins"/>
+		<where>
+			${dataScope}
+			and a.qualified != 0
+			AND a.state = '1'
+			AND a.in_stoarge_state != '1'
+			<if test="itemCode != null and itemCode != ''">
+				AND c.item_code LIKE 
+					<if test="dbName == 'oracle'">'%'||#{itemCode}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{itemCode}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{itemCode},'%')</if>
+			</if>
+			<if test="itemName != null and itemName != ''">
+				AND c.item_name LIKE 
+					<if test="dbName == 'oracle'">'%'||#{itemName}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{itemName}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{itemName},'%')</if>
+			</if>
+			<if test="beginUpdateDate != null and endUpdateDate != null and beginUpdateDate != '' and endUpdateDate != ''">
+				AND a.update_date BETWEEN #{beginUpdateDate} AND #{endUpdateDate}
+			</if>
+		</where>
+		union all
+		SELECT
+			A . ID AS "id",
+			'' AS "mdsProcurmentPlanId",
+			A .qualified AS "qualified",
+			A.CREATE_BY AS "updateBy.id",
+			D.name AS "updateBy.name",
+			a.CREATE_DATE AS "updateDate",
+			0 AS "inStorage",
+			'' AS "inStorageBy.id",
+			a.CREATE_DATE AS "inStorageDate",
+			DECODE (
+				A .in_stoarge_state,
+				1,
+				'已入库',
+				'未入库'
+			) AS "inStoargeState",
+			a.item_id AS "itemId",
+			b.item_code AS "itemCode",
+			b.item_name AS "itemName",
+			b.NORMAL_FIELD AS "normalField",
+			b.MODEL_NUM AS "modelNum",
+			b.specs AS "specs",
+			'' AS "supplierName",
+			'1' as "source"
+		FROM
+			WMS_MAIN_IN a
+		LEFT JOIN mds_item b ON b. ID = a.item_id
+		LEFT JOIN SYS_USER D ON D . ID = A .update_by
+		WHERE	
+			A .in_stoarge_state != '1'
+			<if test="itemCode != null and itemCode != ''">
+				AND b.item_code LIKE 
+					<if test="dbName == 'oracle'">'%'||#{itemCode}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{itemCode}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{itemCode},'%')</if>
+			</if>
+			<if test="itemName != null and itemName != ''">
+				AND b.item_name LIKE 
+					<if test="dbName == 'oracle'">'%'||#{itemName}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{itemName}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{itemName},'%')</if>
+			</if>
+			<if test="beginUpdateDate != null and endUpdateDate != null and beginUpdateDate != '' and endUpdateDate != ''">
+				AND a.create_date BETWEEN #{beginUpdateDate} AND #{endUpdateDate}
+			</if>
+			)
+		<!-- <choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy},updateDate DESC
+			</when>
+			<otherwise>
+				ORDER BY updateDate DESC
+			</otherwise>
+		</choose> -->
+	</select>
+	
+	<select id="findAllList" resultType="WmsMainInStorage" >
+		SELECT 
+			<include refid="wmsMainInStorageColumns"/>
+		FROM mds_arrival_checkout a
+		<include refid="wmsMainInStorageJoins"/>
+		<where>
+			
+			${dataScope}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO wms_main_in(
+			id,
+			QUALIFIED,
+			ITEM_ID,
+			IN_STOARGE_STATE,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks
+		) VALUES (
+			#{id},
+			#{qualified},
+			#{itemId},
+			'0',
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remarks}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE mds_arrival_checkout SET
+			state = #{state},
+			in_storage = #{qualified},
+			in_storage_by = #{inStorageBy.id},
+			in_storage_date = #{inStorageDate},
+			in_stoarge_state = #{inStoargeState}
+		WHERE id = #{id}
+	</update>
+	
+	<update id="updateSource">
+		UPDATE wms_main_in SET
+			update_by = #{inStorageBy.id},
+			update_date = #{inStorageDate},
+			in_stoarge_state = #{inStoargeState}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="deleteAll">
+		DELETE FROM wms_main_in
+		WHERE id = #{id}
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE mds_arrival_checkout SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="WmsMainInStorage" statementType="STATEMENT">
+		select * FROM mds_arrival_checkout  where ${propertyName} = '${value}'
+	</select>
+	
+</mapper>

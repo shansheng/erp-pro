@@ -1,0 +1,378 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.mds.purshchaselist.mapper.MdsPurchaseListMapper">
+    
+	<sql id="mdsPurchaseListColumns">
+		a.id AS "id",
+		a.create_by AS "createByid",
+		a.create_date AS "createDate",
+		a.update_by AS "updateByid",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag",
+		a.mds_item_id AS "mdsItemId",
+		a.purchase_number AS "purchaseNumber",
+		a.demand_number AS "demandNumber",
+		a.demand_date AS "demandDate",
+		a.inventory_number AS "inventoryNumber",
+		a.state AS "state",
+		a.project_number AS "projectNumber",
+		a.tem_number AS "temNumber",
+		a.item_Code AS "itemCode",
+		a.item_name AS "itemName",
+		a.normal_field AS "normalField",
+		a.model_num AS "modelNum",
+		a.specs AS "specs",
+		a.purchase_state AS "purchaseState",
+		a.source_type AS "sourceType",
+		a.sys_market_id AS "marketId",
+		a.test_temporary_plan_id AS "temPlanId",
+		a.mes_name AS "mesName",
+		a.summary_code AS "summaryCode",
+		a.classify AS "classify"
+	</sql>
+	
+	<sql id="mdsPurchaseListJoins">
+		
+	</sql>
+	
+    
+	<select id="get" resultType="MdsPurchaseList" >
+		SELECT 
+			<include refid="mdsPurchaseListColumns"/>
+		FROM mds_purchase_list a
+		<include refid="mdsPurchaseListJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="getByMdsItemId" resultType = "MdsPurchaseList">
+	 SELECT
+	  <include refid="mdsPurchaseListColumns"/>
+	  FROM mds_purchase_list a
+	  where a.mds_item_id=#{mdsItemId} and a.state='未添加'
+	</select>
+	
+	<select id="findList" resultType="MdsPurchaseList" >
+		SELECT 
+			a.mds_item_id AS "mdsItemId",
+    		a.state AS "state",
+    		a.item_Code AS "itemCode",
+    		a.item_name AS "itemName",
+    		a.normal_field AS "normalField",
+    		a.model_num AS "modelNum",
+    		a.specs AS "specs",
+    		a.del_flag AS "delFlag",
+    		sum(a.purchase_number) AS "purchaseNumber",
+    		sum(a.demand_number) AS "demandNumber"
+		FROM mds_purchase_list a
+		<include refid="mdsPurchaseListJoins"/> 
+	    <where>
+	    	a.state = '未添加'
+			and a.del_flag = #{DEL_FLAG_NORMAL}
+			${dataScope}
+		</where>
+		group by a.mds_item_id,a.item_code,a.item_name,a.normal_field,a.model_num,a.specs,a.state,a.del_flag
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<!-- <otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>  -->
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="MdsPurchaseList" >
+		SELECT 
+			<include refid="mdsPurchaseListColumns"/>
+		FROM mds_purchase_list a
+		<include refid="mdsPurchaseListJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			${dataScope}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+
+	<insert id="insert">
+		INSERT INTO mds_purchase_list(
+			id,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks,
+			del_flag,
+			mds_item_id,
+			purchase_number,
+			demand_number,
+			demand_date,
+			inventory_number,
+			state,
+			project_number,
+			tem_number,
+			item_code,
+			item_name,
+			normal_field,
+			model_num,
+			specs,
+			purchase_state,
+			source_type,
+			sys_market_id,
+			test_temporary_plan_id,
+			mes_id,
+			mes_name,
+			summary_code,
+			classify,
+			verify_by
+		) VALUES (
+			#{id},
+			#{createByid},
+			#{createDate},
+			#{updateByid},
+			#{updateDate},
+			#{remarks},
+			#{delFlag},
+			#{mdsItemId},
+			#{purchaseNumber},
+			#{demandNumber},
+			#{demandDate},
+			#{inventoryNumber},
+			#{state},
+			#{projectNumber},
+			#{temNumber},
+			#{itemCode},
+			#{itemName},
+			#{normalField},
+			#{modelNum},
+			#{specs},
+			#{purchaseState},
+			#{sourceType},
+			#{marketId},
+			#{temPlanId},
+			#{mesId},
+			#{mesName},
+			#{summaryCode},
+			#{classify},
+			#{verifyBy}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE mds_purchase_list SET 	
+			update_by = #{updateByid},
+			update_date = #{updateDate},
+			remarks = #{remarks},
+			mds_item_id = #{mdsItemId},
+			purchase_number = #{purchaseNumber},
+			demand_number = #{demandNumber},
+			demand_date = #{demandDate},
+			inventory_number = #{inventoryNumber},
+			state = #{state},
+			project_number = #{projectNumber},
+			tem_number = #{temNumber}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM mds_purchase_list
+		WHERE id = #{id}
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE mds_purchase_list SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="MdsPurchaseList" statementType="STATEMENT">
+		select * FROM mds_purchase_list  where ${propertyName} = '${value}'
+	</select>
+	<select id="findAll" resultType="MdsPurchaseList">
+	   (select 
+		mds_item_id AS "mdsItemId",
+		item_code AS "itemCode",
+		item_name AS "itemName",
+		normal_field AS "normalField",
+		model_num AS "modelNum",
+		specs AS "specs",
+		demand_date AS "demandDate",
+		applyoval_number AS "demandNumber"
+        from purase_deputy_v
+		<where>
+			${dataScope}
+			<if test="beginDemandDate != null and endDemandDate != null and beginDemandDate != '' and endDemandDate != ''">
+				AND deputy_assessing_date BETWEEN #{beginDemandDate} AND #{endDemandDate}
+			</if>
+		</where>
+		union all
+		
+		select 
+		mds_item_id AS "mdsItemId",
+		item_code AS "itemCode",
+		item_name AS "itemName",
+		normal_field AS "normalField",
+		model_num AS "modelNum",
+		specs AS "specs",
+		purchase_end_date AS "demandDate",
+		demand_number AS "demandNumber"
+		from purase_v
+			<where>
+			<!-- a.del_flag = #{DEL_FLAG_NORMAL} -->
+			${dataScope}
+			<if test="beginDemandDate != null and endDemandDate != null and beginDemandDate != '' and endDemandDate != ''">
+				AND assign_date BETWEEN #{beginDemandDate} AND #{endDemandDate}
+			</if>
+		</where>
+		)
+	</select>
+	
+	<select id="check" resultType="MdsPurchaseList">
+	   select 
+	   <include refid="mdsPurchaseListColumns"/>
+	   FROM mds_purchase_list a
+	   <where>
+	       <if test="summaryCode !=null and summaryCode!='' ">
+	         AND summary_code = #{summaryCode}
+	       </if>
+	       <if test="mesId!=null and mesId!='' ">
+	          AND mes_id =#{mesId}
+	       </if>
+	       <if test="mdsItemId!=null and mdsItemId!=''">
+	        AND mds_item_id =#{mdsItemId}
+	       </if>
+	       <if test="demandNumber!=null and demandNumber!='' ">
+	          AND demand_number=#{demandNumber}
+	       </if>
+	       <if test="demandDate!=null and demandDate!='' ">
+	          AND demand_date =#{demandDate}
+	       </if>
+	       <if test="remarks !=null and remarks != '' ">
+	          AND remarks = #{remarks}
+	       </if>
+	       <if test="verifyBy !=null and verifyBy != '' ">
+	           AND verify_by = #{verifyBy}
+	       </if>
+	   </where>
+	</select>
+	
+	<select id="findPurasev" resultType="MdsPurchaseList">
+	   select 
+	    id AS "id",
+	    mes_id AS "mesId",
+	    mes_name AS "mesName",
+		mds_item_id AS "mdsItemId",
+		item_code AS "itemCode",
+		item_name AS "itemName",
+		normal_field AS "normalField",
+		model_num AS "modelNum",
+		specs AS "specs",
+		classify AS "classify",
+		contract_no AS "summaryCode",
+		purchase_end_date AS "demandDate",
+		demand_number AS "demandNumber",
+		market_id AS "marketId",
+		remarks AS "remarks",
+		verify_by AS "verifyBy"
+		from purase_v
+			<where>
+			<!-- a.del_flag = #{DEL_FLAG_NORMAL} -->
+			${dataScope}
+			<if test="beginDemandDate != null and endDemandDate != null and beginDemandDate != '' and endDemandDate != ''">
+				AND assign_date BETWEEN #{beginDemandDate} AND #{endDemandDate}
+			</if>
+		</where>
+	</select>
+	<select id="findPuraseDeputy" resultType="MdsPurchaseList">
+	 select 
+		mds_item_id AS "mdsItemId",
+		item_code AS "itemCode",
+		item_name AS "itemName",
+		normal_field AS "normalField",
+		model_num AS "modelNum",
+		specs AS "specs",
+		demand_date AS "demandDate",
+		applyoval_number AS "demandNumber",
+		code AS "summaryCode",
+		tem_plan_id AS "temPlanId"
+        from purase_deputy_v
+		<where>
+			${dataScope}
+			<if test="beginDemandDate != null and endDemandDate != null and beginDemandDate != '' and endDemandDate != ''">
+				AND deputy_assessing_date BETWEEN #{beginDemandDate} AND #{endDemandDate}
+			</if>
+		</where>
+	</select>
+	<select id="findPuraseTem" resultType = "MdsPurchaseList">
+	   select
+	    mds_item_id AS "mdsItemId",
+		item_code AS "itemCode",
+		item_name AS "itemName",
+		normal_field AS "normalField",
+		model_num AS "modelNum",
+		specs AS "specs",
+		delivery_date AS "demandDate",
+		demand_number AS "demandNumber",
+		contract_no AS "summaryCode",
+		market_id AS "marketId"
+		from purase_tem_v
+		 <where>
+			${dataScope}
+			<if test="beginDemandDate != null and endDemandDate != null and beginDemandDate != '' and endDemandDate != ''">
+				AND assign_date BETWEEN #{beginDemandDate} AND #{endDemandDate}
+			</if>
+		</where>
+	</select>
+	<update id="addPurchase" >
+	   begin
+	   <foreach collection="array" item="mdsItemId"  separator=";">
+	       update mds_purchase_list
+	       set
+	       state='已添加'
+	       where mds_item_id=#{mdsItemId}
+	   </foreach>
+	   ;end;
+	</update>
+	<select id="findItemId" resultType="String">
+	   select id from mds_item where item_code=#{itemCode}
+	</select>
+	
+	<select id="findByMdsItemId" resultType="MdsPurchaseList">
+	   SELECT 
+	   <include  refid="mdsPurchaseListColumns"/>
+	   FROM mds_purchase_list a
+	  <where>
+	       a.state='未添加'
+	     <if test="mdsItemId!=null and mdsItemId!=''">
+	         and mds_item_id = #{mdsItemId}
+	     </if>
+	  </where>
+	</select>
+	<!--  -->
+	<update id="updateStateByMdsItemId">
+	  update mds_purchase_list set
+	    
+	</update>
+	<update id="updateIsAdd">
+	    update mds_quota_detail
+	    set is_add = '1'
+	    where id=#{id}
+	</update>
+	<!-- 根据物料id，查看库存 -->
+	<select id="selectInventoryNumber" resultType="MdsPurchaseList">
+	   select CURRENT_ONHAND_QTY from wms_main_inventory
+	   where item_id = #{mdsItemId}
+	</select>
+</mapper>

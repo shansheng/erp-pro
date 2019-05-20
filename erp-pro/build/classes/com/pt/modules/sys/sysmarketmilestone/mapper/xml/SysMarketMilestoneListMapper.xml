@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.sys.sysmarketmilestone.mapper.SysMarketMilestoneListMapper">
+    
+	<sql id="sysMarketListColumns">
+		a.id AS "id",
+		a.sys_market_id as "sysMarketId",
+		a.mds_item_id AS "mdsItemId",
+		a.num AS "num",
+		item.item_code As "itemCode",
+		item.item_name As "itemName",
+		item.model_num As "modelNum",
+		item.specs As "itemSpecs"
+	</sql>
+	
+	<sql id="sysMarketListJoins">
+		LEFT JOIN mds_item item on item.id = a.mds_item_id
+		left join sys_market sm on sm.id=a.sys_market_id
+	</sql>
+	
+    
+	<select id="get" resultType="SysMarketList" >
+		SELECT 
+			<include refid="sysMarketListColumns"/>
+		FROM sys_market_list a
+		<include refid="sysMarketListJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="SysMarketList" >
+		SELECT 
+			<include refid="sysMarketListColumns"/>
+		FROM sys_market_list a
+		<include refid="sysMarketListJoins"/>
+		<where>
+			<if test="sysMarket.id != null and sysMarket.id != ''">
+				AND a.sys_market_id = #{sysMarket.id}
+			</if>
+			
+			${dataScope}
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="SysMarketList" >
+		SELECT 
+			<include refid="sysMarketListColumns"/>
+		FROM sys_market_list a
+		<include refid="sysMarketListJoins"/>
+		<where>
+			
+			${dataScope}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO sys_market_list(
+			id,
+			mds_item_id,
+			sys_market_id,
+			num
+		) VALUES (
+			#{id},
+			#{mdsItemId},
+			#{sysMarketId},
+			#{num}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE sys_market_list SET 	
+			mds_item_id = #{mdsItemId},
+			sys_market_id=#{sysMarketId},
+			num = #{num}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM sys_market_list
+		WHERE id = #{id}
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE sys_market_list SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="SysMarketList" statementType="STATEMENT">
+		select * FROM sys_market_list  where ${propertyName} = '${value}'
+	</select>
+	
+</mapper>

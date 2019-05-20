@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.mes.meswo.mapper.MesEwoMapper">
+    
+	<sql id="mesEwoColumns">
+		a.id AS "id",
+		a.ewo_no AS "ewoNo",
+		a.task_no AS "taskNo",
+		a.batch_no AS "batchNo",
+		a.pro_mds_item_id AS "proMdsItemId",
+		a.pro_mds_item_code AS "proMdsItemCode",
+		a.mds_item_id AS "mdsItemId",
+		a.mds_item_code AS "mdsItemCode",
+		a.mds_item_name AS "mdsItemName",
+		a.item_type_label AS "itemTypeLabel",
+		a.route_shop AS "routeShop",
+		a.req_qty AS "reqQty",
+		a.plan_start_date AS "planStartDate",
+		a.plan_end_date AS "planEndDate",
+		a.actual_start_date AS "actualStartDate",
+		a.actual_end_date AS "actualEndDate",
+		a.main_office_id AS "mainOfficeId",
+		a.main_office_name AS "mainOfficeName",
+		a.ewo_status AS "ewoStatus",
+		a.ewo_status_label AS "ewoStatusLabel"
+	</sql>
+	
+	<sql id="mesEwoJoins">
+	</sql>
+	
+    
+	<select id="get" resultType="MesEwo" >
+		SELECT 
+			<include refid="mesEwoColumns"/>
+		FROM mes_ewo_v a
+		<include refid="mesEwoJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="MesEwo" >
+		SELECT 
+			<include refid="mesEwoColumns"/>
+		FROM mes_ewo_v a
+		<include refid="mesEwoJoins"/>
+		<where>	
+			<if test="ewoNo != null and ewoNo != ''">
+				AND a.ewo_no LIKE 
+					<if test="dbName == 'oracle'">'%'||#{ewoNo}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{ewoNo}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{ewoNo},'%')</if>
+			</if>
+			<if test="batchNo != null and batchNo != ''">
+				AND a.batch_no LIKE 
+					<if test="dbName == 'oracle'">'%'||#{batchNo}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{batchNo}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{batchNo},'%')</if>
+			</if>
+			<if test="proMdsItemCode != null and proMdsItemCode != ''">
+				AND a.pro_mds_item_code LIKE 
+					<if test="dbName == 'oracle'">'%'||#{proMdsItemCode}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{proMdsItemCode}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{proMdsItemCode},'%')</if>
+			</if>
+			<if test="mdsItemCode != null and mdsItemCode != ''">
+				AND a.mds_item_code LIKE 
+					<if test="dbName == 'oracle'">'%'||#{mdsItemCode}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{mdsItemCode}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{mdsItemCode},'%')</if>
+			</if>
+			<if test="mdsItemName != null and mdsItemName != ''">
+				AND a.mds_item_name  LIKE 
+					<if test="dbName == 'oracle'">'%'||#{mdsItemName}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{mdsItemName}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{mdsItemName},'%')</if>
+			</if><if test="ewoStatus != null and ewoStatus != ''">
+				AND a.ewo_status  LIKE 
+					<if test="dbName == 'oracle'">'%'||#{ewoStatus}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{ewoStatus}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{ewoStatus},'%')</if>
+			</if>
+
+		</where>
+		order by ewo_no desc
+	</select>
+	
+	<select id="findAllList" resultType="MesEwo" >
+		SELECT 
+			<include refid="mesEwoColumns"/>
+		FROM mes_ewo_v a
+		<include refid="mesEwoJoins"/>
+		<where>
+			
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO mes_ewo(
+			id,
+			ewo_no,
+			task_no,
+			batch_no,
+			pro_mds_item_id,
+			pro_mds_item_code,
+			mds_item_id,
+			mds_item_code,
+			mds_item_name,
+			item_type_label,
+			route_shop,
+			req_qty,
+			plan_start_date,
+			plan_end_date,
+			actual_start_date,
+			actual_end_date,
+			main_office_id,
+			main_office_name,
+			ewo_status,
+			ewo_status_label
+		) VALUES (
+			#{id},
+			#{ewoNo},
+			#{taskNo},
+			#{batchNo},
+			#{proMdsItemId},
+			#{proMdsItemCode},
+			#{mdsItemId},
+			#{mdsItemCode},
+			#{mdsItemName},
+			#{itemTypeLabel},
+			#{routeShop},
+			#{reqQty},
+			#{planStartDate},
+			#{planEndDate},
+			#{actualStartDate},
+			#{actualEndDate},
+			#{mainOfficeId},
+			#{mainOfficeName},
+			#{ewoStatus},
+			#{ewoStatusLabel}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE mes_ewo SET 	
+			ewo_no = #{ewoNo},
+			task_no = #{taskNo},
+			batch_no = #{batchNo},
+			pro_mds_item_id = #{proMdsItemId},
+			pro_mds_item_code = #{proMdsItemCode},
+			mds_item_id = #{mdsItemId},
+			mds_item_code = #{mdsItemCode},
+			mds_item_name = #{mdsItemName},
+			item_type_label = #{itemTypeLabel},
+			route_shop = #{routeShop},
+			req_qty = #{reqQty},
+			plan_start_date = #{planStartDate},
+			plan_end_date = #{planEndDate},
+			actual_start_date = #{actualStartDate},
+			actual_end_date = #{actualEndDate},
+			main_office_id = #{mainOfficeId},
+			main_office_name = #{mainOfficeName},
+			ewo_status = #{ewoStatus},
+			ewo_status_label = #{ewoStatusLabel}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM mes_ewo
+		WHERE id = #{id}
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE mes_ewo SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="MesEwo" statementType="STATEMENT">
+		select * FROM mes_ewo_v  where ${propertyName} = '${value}'
+	</select>
+	
+	<!-- 生产计划下达 -->
+	<select id="mesEwoDispatch" parameterType="java.util.Map" statementType="CALLABLE">  
+		{call ptplus.mes_ewo_dispatch_p(
+				  #{i_ewo_id,jdbcType=VARCHAR,mode=IN},  
+				  #{i_user_id,jdbcType=VARCHAR,mode=IN},  
+				  #{o_Return_Int,jdbcType=INTEGER,mode=OUT},
+				  #{o_Return_String,jdbcType=VARCHAR,mode=OUT}
+			  )
+    	}
+	</select>
+	<!-- 删除投料 -->
+	<select id="mesEwoDispatchDel" parameterType="java.util.Map" statementType="CALLABLE">  
+		{call ptplus.mes_ewo_del_p(
+				  #{i_ewo_id,jdbcType=VARCHAR,mode=IN},  
+				  #{i_user_id,jdbcType=VARCHAR,mode=IN},  
+				  #{o_Return_Int,jdbcType=INTEGER,mode=OUT},
+				  #{o_Return_String,jdbcType=VARCHAR,mode=OUT}
+			  )
+    	}
+	</select>
+</mapper>

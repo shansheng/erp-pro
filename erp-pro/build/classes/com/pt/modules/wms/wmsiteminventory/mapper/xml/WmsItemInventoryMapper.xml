@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.wms.wmsiteminventory.mapper.WmsItemInventoryMapper">
+    
+	<sql id="wmsItemInventoryColumns">
+		a.id AS "id",
+		a.item_id AS "itemId",
+		a.item_code AS "itemCode",
+		a.item_name AS "itemName",
+		a.marque AS "marque",
+		a.specs AS "specs",
+		a.tech_condition AS "techCondition",
+		a.batch_no AS "batchNo",
+		a.quality_code AS "qualityCode",
+		a.lph AS "lph",
+		a.current_onhand_qty AS "currentOnhandQty",
+		a.current_init_inv_qty AS "currentInitInvQty",
+		a.current_sumup_in_qty AS "currentSumupInQty",
+		a.current_sumup_out_qty AS "currentSumupOutQty",
+		a.current_sumup_adjust_qty AS "currentSumupAdjustQty",
+		a.engaged_qty AS "engagedQty",
+		a.wms_inventory_id AS "wmsInventoryId",
+		a.inventory_code AS "inventoryCode",
+		a.inventory_name AS "inventoryName",
+		a.locator_id AS "locatorId",
+		a.locator_code AS "locatorCode",
+		a.sys_office_id AS "sysOfficeId",
+		a.sys_office_name AS "sysOfficeName"
+		
+	</sql>
+	
+	<sql id="wmsItemInventoryJoins">
+	<!-- left JOIN wms_item_inventory_vs wii on a.id=wii.wms_inventory_id -->
+	</sql>
+	
+    
+	<select id="get" resultType="WmsItemInventory" >
+		SELECT 
+			<include refid="wmsItemInventoryColumns"/>
+		FROM wms_item_inventory_vs a
+		<include refid="wmsItemInventoryJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="WmsItemInventory" >
+		SELECT 
+			<include refid="wmsItemInventoryColumns"/>
+		FROM wms_item_inventory_vs a
+		<include refid="wmsItemInventoryJoins"/>
+		<where>
+		    ${dataScope} 
+			<if test="itemCode != null and itemCode != ''">
+				AND a.item_code LIKE CONCAT('%',#{itemCode},'%')
+			</if>
+			<if test="itemName != null and itemName != ''">
+				AND a.item_name LIKE CONCAT('%',#{itemName},'%')
+			</if>
+			<if test="marque != null and marque != ''">
+				AND a.marque LIKE CONCAT('%',#{marque},'%')
+			</if>
+			<if test="specs != null and specs != ''">
+				AND a.specs LIKE CONCAT('%',#{specs},'%')
+			</if>
+			<if test="techCondition != null and techCondition != ''">
+				AND a.tech_condition LIKE CONCAT('%',#{techCondition},'%')
+			</if>
+			<if test="batchNo != null and batchNo != ''">
+				AND a.batch_no LIKE CONCAT('%',#{batchNo},'%')
+			</if>
+			<if test="inventoryName != null and inventoryName != ''">
+				AND a.inventory_name LIKE CONCAT('%',#{inventoryName},'%')
+			</if>
+			<if test="locatorCode != null and locatorCode != ''">
+				AND a.locator_code LIKE CONCAT('%',#{locatorCode},'%')
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+			
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="WmsItemInventory" >
+		SELECT 
+			<include refid="wmsItemInventoryColumns"/>
+		FROM wms_item_inventory_vs a
+		<include refid="wmsItemInventoryJoins"/>
+		<where>
+		      ${dataScope} 
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+			
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO wms_item_inventory_vs(
+			id,
+			item_code,
+			item_name,
+			marque,
+			specs,
+			tech_condition,
+			batch_no,
+			quality_code,
+			lph,
+			current_onhand_qty,
+			current_init_inv_qty,
+            current_sumup_in_qty,
+            current_sumup_out_qty,
+            current_sumup_adjust_qty,
+			engaged_qty,
+			wms_inventory_id,
+			inventory_code,
+			inventory_name,
+			locator_code,
+			sys_office_id,
+			sys_office_name
+		) VALUES (
+			#{id},
+			#{itemCode},
+			#{itemName},
+			#{marque},
+			#{specs},
+			#{techCondition},
+			#{batchNo},
+			#{qualityCode},
+			#{lph},
+			#{currentOnhandQty},
+			#{currentInitInvQty},
+			#{currentSumupInQty},
+			#{currentSumupOutQty},
+			#{currentSumupAdjustQty},
+			#{engagedQty},
+			#{wmsInventoryId},
+			#{inventoryCode},
+			#{inventoryName},
+			#{locatorCode},
+			#{sysOfficeId},
+			#{sysOfficeName}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE wms_item_inventory_vs SET 	
+		item_code = #{itemCode},
+			item_name = #{itemName},
+			marque = #{marque},
+			specs = #{specs},
+			tech_condition = #{techCondition},
+			batch_no = #{batchNo},
+			quality_code = #{qualityCode},
+			lph = #{lph},
+			current_onhand_qty = #{currentOnhandQty},
+			current_init_inv_qty =#{currentInitInvQty},
+            current_sumup_in_qty =#{currentSumupInQty},
+            current_sumup_out_qty =#{currentSumupOutQty},
+            current_sumup_adjust_qty =#{currentSumupAdjustQty},
+			engaged_qty = #{engagedQty},
+			wms_inventory_id = #{wmsInventoryId},
+			inventory_code = #{inventoryCode},
+			inventory_name = #{inventoryName},
+			locator_code = #{locatorCode},
+			sys_office_id = #{sysOfficeId},
+			sys_office_name = #{sysOfficeName}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM wms_item_inventory_vs
+		WHERE id = #{id}
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE wms_item_inventory_vs SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="WmsItemInventory" statementType="STATEMENT">
+		select * FROM wms_item_inventory_vs  where ${propertyName} = '${value}'
+	</select>
+	
+</mapper>

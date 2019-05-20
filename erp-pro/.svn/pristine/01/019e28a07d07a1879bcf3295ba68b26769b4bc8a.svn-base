@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.mat.matbom.mapper.MatBomDetailMapper">
+
+    <resultMap id="matBomDetailResult" type="MatBomDetail">
+   		<result property="id" column="id" />
+		<result property="name" column="name" />
+		<result property="sort" column="sort" />
+		<result property="parentIds" column="parentIds" />
+		<result property="mdsItemId" column="mdsItemId" />
+		<result property="modelNum" column="modelNum" />
+		<result property="column2" column="column2" />
+		<result property="column3" column="column3" />
+		<result property="column4" column="column4" />
+		<result property="column5" column="column5" />
+		<result property="classify" column="classify" />
+		<association property="hasChildren" column="id" select="hasChildren" />
+    </resultMap>
+    
+	<sql id="matBomDetailColumns">
+		a.id AS "id",
+		a.mds_item_id AS "mdsItemId",
+		a.mat_bom_id as "matBomId",
+		a.model_num AS "modelNum",
+		a.column2 AS "column2",
+		a.column3 AS "column3",
+		a.column4 AS "column4",
+		a.column5 AS "column5",
+		a.create_by AS "createBy.id",
+		a.update_by AS "updateBy.id",
+		a.remarks AS "remarks",
+		a.classify AS "classify",
+		a.parent_id AS "parent.id",
+		a.parent_ids AS "parentIds",
+		a.name AS "name",
+		a.sort AS "sort",
+	    E.ITEM_NAME AS "mdsItemName",
+		E.ITEM_CODE AS "mdsItemCode",
+		E.SPECS AS "mdsItemspecs",
+		E.MODEL_NUM AS "mdsItemmodelNum"
+		
+	</sql>
+
+
+	<sql id="matBomDetailJoins">
+		LEFT JOIN MDS_ITEM E ON E.ID = a.MDS_ITEM_ID
+		
+	</sql>
+	
+	
+		<select id="getByIBId" resultType="MatBomDetail">
+		SELECT 
+			<include refid="matBomDetailColumns"/>
+		FROM mat_bom_detail a
+		<include refid="matBomDetailJoins"/>
+		WHERE a.mat_bom_id=#{matBomId} and a.mds_item_id = #{mdsItemId}
+		
+	</select>
+		<select id="getByMatBomId" resultType="MatBomDetail">
+		SELECT 
+			<include refid="matBomDetailColumns"/>
+		FROM mat_bom_detail a
+		<include refid="matBomDetailJoins"/>
+		WHERE a.mat_bom_id=#{matBomId}
+		
+	</select>
+	
+	
+	<select id="getByItemBomId" resultType="MatBomDetail">
+		SELECT 
+			<include refid="matBomDetailColumns"/>
+		FROM mat_bom_detail a
+		<include refid="matBomDetailJoins"/>
+		WHERE a.mds_item_id = #{mdsItemId} and a.mat_bom_id=#{matBomId}
+		
+	</select>
+
+    
+	<select id="get" resultType="MatBomDetail">
+		SELECT 
+			<include refid="matBomDetailColumns"/>
+		FROM mat_bom_detail a
+		<include refid="matBomDetailJoins"/>
+		WHERE a.id = #{id}
+		
+	</select>
+	
+	<select id="getD" resultType="MatBomDetail">
+		SELECT 
+			<include refid="matBomDetailColumns"/>
+		FROM mat_bom_detail a
+		<include refid="matBomDetailJoins"/>
+		WHERE  a.id = #{parentId}
+			
+	</select>
+	
+	<select id="findList" resultType="MatBomDetail">
+		SELECT 
+			<include refid="matBomDetailColumns"/>
+		FROM mat_bom_detail a
+		<include refid="matBomDetailJoins"/>
+		<where>
+			a.mat_bom_id = #{matBomId}
+			${dataScope}
+			
+				
+			
+			<if test="mdsItemId != null and mdsItemId != ''">
+				AND a.mds_item_id = #{mdsItemId}
+			</if>
+			<if test="parent != null and parent.id != null and parent.id != ''">
+				AND a.parent_id = #{parent.id}
+			</if>
+			<if test="parentIds != null and parentIds != ''">
+				AND a.parent_ids LIKE 
+					<if test="dbName == 'oracle'">'%'||#{parentIds}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{parentIds}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{parentIds},'%')</if>
+			</if>
+			<if test="name != null and name != ''">
+				AND a.name LIKE 
+					<if test="dbName == 'oracle'">'%'||#{name}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{name}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{name},'%')</if>
+			</if>
+		</where>
+		ORDER BY a.sort ASC
+	</select>
+	
+	<select id="findAllList" resultType="MatBomDetail">
+		SELECT 
+			<include refid="matBomDetailColumns"/>
+		FROM mat_bom_detail a
+		<include refid="matBomDetailJoins"/>
+		<where>
+			
+			${dataScope}
+		</where>
+		ORDER BY a.sort ASC
+	</select>
+	
+	<select id="getChildren" parameterType="String" resultMap="matBomDetailResult">  
+        select * from mat_bom_detail where parent_id = #{id} ORDER BY sort 
+    </select> 
+     
+    <select id="hasChildren" parameterType="String" resultType="Boolean">  
+        select case when sl = 0 then 0 else 1 end As sl from (select count(*) As sl from mat_bom_detail where parent_id = #{id}) sl
+    </select>
+    
+	<select id="findByParentIdsLike" resultType="MatBomDetail">
+		SELECT
+			a.id,
+			a.parent_id AS "parent.id",
+			a.parent_ids
+		FROM mat_bom_detail a
+		<include refid="matBomDetailJoins"/>
+		<where>
+			
+			AND a.parent_ids LIKE #{parentIds}
+		</where>
+		ORDER BY a.sort ASC
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO mat_bom_detail(
+			id,
+			mds_item_id,
+			model_num,
+			mat_bom_id,
+			column2,
+			column3,
+			column4,
+			column5,
+			create_by,
+			update_by,
+			remarks,
+			classify,
+			parent_id,
+			parent_ids,
+			name,
+			sort
+		) VALUES (
+			#{id},
+			#{mdsItemId},
+			#{modelNum},
+			#{matBomId},
+			#{column2},
+			#{column3},
+			#{column4},
+			#{column5},
+			#{createBy.id},
+			#{updateBy.id},
+			#{remarks},
+			#{classify},
+			#{parent.id},
+			#{parentIds},
+			#{name},
+			#{sort}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE mat_bom_detail SET 	
+			mds_item_id = #{mdsItemId},
+			model_num = #{modelNum},
+			mat_bom_id=#{matBomId},
+			column2 = #{column2},
+			column3 = #{column3},
+			column4 = #{column4},
+			column5 = #{column5},
+			update_by = #{updateBy.id},
+			remarks = #{remarks},
+			classify = #{classify},
+			parent_id = #{parent.id},
+			parent_ids = #{parentIds},
+			name = #{name},
+			sort = #{sort}
+		WHERE id = #{id}
+	</update>
+	
+	<update id="updateParentIds">
+		UPDATE mat_bom_detail SET 
+			parent_id = #{parent.id}, 
+			parent_ids = #{parentIds}
+		WHERE id = #{id}
+	</update>
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM mat_bom_detail
+		WHERE id = #{id} OR parent_ids LIKE 
+		<if test="dbName == 'oracle'">'%,'||#{id}||',%'</if>
+		<if test="dbName == 'mssql'">'%,'+#{id}+',%'</if>
+        <if test="dbName == 'mysql'">CONCAT('%,', #{id}, ',%')</if>
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE mat_bom_detail SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id} OR parent_ids LIKE 
+		<if test="dbName == 'oracle'">'%,'||#{id}||',%'</if>
+		<if test="dbName == 'mssql'">'%,'+#{id}+',%'</if>
+        <if test="dbName == 'mysql'">CONCAT('%,', #{id}, ',%')</if>
+	</update>
+	
+</mapper>

@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.sm.smuser.mapper.SmUserMapper">
+    
+	<sql id="smUserColumns">
+		a.id AS "id",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag",
+		a.name AS "name",
+		a.phone AS "phone",
+		a.mobile AS "mobile",
+		a.photo AS "photo",
+		a.industry AS "industry",
+		a.position AS "position",
+		a.business_scope AS "business_scope",
+		a.project_info AS "project_info",
+		a.user_level AS "user_level",
+		a.inner_order AS "inner_order",
+		a.addr AS "addr"
+	</sql>
+	
+	<sql id="smUserJoins">
+		
+	</sql>
+	
+    
+	<select id="get" resultType="SmUser" >
+		SELECT 
+			<include refid="smUserColumns"/>
+		FROM sm_user a
+		<include refid="smUserJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="SmUser" >
+		SELECT 
+			<include refid="smUserColumns"/>
+		FROM sm_user a
+		<where>
+		    a.del_flag = #{DEL_FLAG_NORMAL}
+		    <if test="name !=null and name !='' ">
+		    	and a.name like concat('%',#{name},'%')
+		    	
+		    </if>
+			${dataScope}
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="SmUser" >
+		SELECT 
+			<include refid="smUserColumns"/>
+		FROM sm_user a 
+		<include refid="smUserJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			${dataScope}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO sm_user(
+			id,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks,
+			del_flag,
+			name,
+			phone,
+			mobile,
+			photo,
+			industry,
+			position,
+			business_scope,
+			project_info,
+			user_level,
+			inner_order,
+			addr
+		) VALUES (
+			#{id},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remarks},
+			#{delFlag},
+			#{name},
+			#{phone},
+			#{mobile},
+			#{photo},
+			#{industry},
+			#{position},
+			#{business_scope},
+			#{project_info},
+			#{user_level},
+			#{inner_order},
+			#{addr}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE sm_user SET 	
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remarks = #{remarks},
+			name = #{name},
+			phone = #{phone},
+			mobile = #{mobile},
+			photo = #{photo},
+			industry = #{industry},
+			position = #{position},
+			business_scope = #{business_scope},
+			project_info = #{project_info},
+			user_level = #{user_level},
+			inner_order = #{inner_order},
+			addr = #{addr}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM sm_user
+		WHERE id = #{id}
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE sm_user SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="SmUser" statementType="STATEMENT">
+		select * FROM sm_user  where ${propertyName} = '${value}'
+	</select>
+	
+</mapper>

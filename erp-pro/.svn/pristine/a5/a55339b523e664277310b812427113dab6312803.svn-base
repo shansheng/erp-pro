@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.sys.sysquestion.mapper.SysQuestionMapper">
+    
+	<sql id="sysQuestionColumns">
+		a.id AS "id",
+		a.title AS "title",
+		a.classify AS "classify",
+		a.subclassification AS "subclassification",
+		a.sys_office_id AS "sysOfficeId",
+		a.sys_user_id AS "sysUserId",
+		a.pro_sys_user_id AS "proSysUserId",
+		a.status AS "status",
+		a.text AS "text",
+		a.start_user_id AS "startUserId",
+		
+		a.item1 AS "item1",
+		a.item2 AS "item2",
+		a.item3 AS "item3",
+		a.item4 AS "item4",
+		a.item5 AS "item5",
+		a.old_user_id AS "oldUserId",
+		a.new_user_id AS "newUserId",	
+		a.remake AS "remake",
+		a.upl AS "upl",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		so.name as "sysOfficeName",
+		sa.name as "sysUserName",
+		sb.name as "proSysUserName",
+		sc.name as "startUserName",
+		sd.name as "oldUserName",
+		se.name as "newUserName",
+		sq.subclassification_name as "subclassificationName"
+		
+	</sql>
+	
+	<sql id="sysQuestionJoins">
+		left join sys_office so on so.id=a.sys_office_id
+		left join sys_user sa on sa.id=a.sys_user_id
+		left join sys_user sb on sb.id=a.pro_sys_user_id
+		left join sys_user sc on sc.id=a.start_user_id
+		left join sys_user sd on sd.id=a.old_user_id
+		left join sys_user se on se.id=a.new_user_id
+		left join sys_que_class sq on sq.subclassification=a.subclassification and a.classify=sq.classify
+	</sql>
+	
+    
+    <select id="selectSub" resultType="SysQuestion" >
+		
+		SELECT DISTINCT
+	
+	b.classify,
+	b.subclassification,
+	b.subclassification_name
+FROM
+	
+	sys_que_class b
+WHERE
+	b.classify = #{classify}
+	</select>
+    
+    
+	<select id="get" resultType="SysQuestion" >
+		SELECT 
+			<include refid="sysQuestionColumns"/>
+		FROM sys_question a
+		<include refid="sysQuestionJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="SysQuestion" >
+		SELECT DISTINCT
+			<include refid="sysQuestionColumns"/>
+		FROM sys_question a
+		<include refid="sysQuestionJoins"/>
+		<where>
+			
+			${dataScope}
+			<if test="title != null and title != ''">
+				AND a.title LIKE
+					<if test="dbName == 'oracle'">'%'||#{title}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{title}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{title},'%')</if>
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="SysQuestion" >
+		SELECT 
+			<include refid="sysQuestionColumns"/>
+		FROM sys_question a
+		<include refid="sysQuestionJoins"/>
+		<where>
+			
+			${dataScope}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO sys_question(
+			id,
+			title,
+			classify,
+			subclassification,
+			sys_office_id,
+			sys_user_id,
+			pro_sys_user_id,
+			status,
+			text,
+			start_user_id,
+			
+			item1,
+			item2,
+			item3,
+			item4,
+			item5,
+			create_by, 
+			create_date, 
+			update_by, 
+			update_date, 
+			old_user_id,
+			new_user_id,
+			remake,
+			upl
+		) VALUES (
+			#{id},
+			#{title},
+			#{classify},
+			#{subclassification},
+			#{sysOfficeId},
+			#{sysUserId},
+			#{createBy.id},
+			'1',
+			#{text},
+			#{startUserId},
+			
+			#{item1},
+			#{item2},
+			#{item3},
+			#{item4},
+			#{item5},
+			#{createBy.id}, 
+			#{createDate}, 
+			#{updateBy.id}, 
+			#{updateDate}, 
+			#{oldUserId},
+			#{newUserId},
+			#{remake},
+			#{upl}
+		)
+	</insert>
+	<update id="updateStatus">
+	UPDATE sys_question SET 
+	status = '2'
+	WHERE id = #{id}
+	</update>
+	<update id="update">
+		UPDATE sys_question SET 	
+			title = #{title},
+			classify = #{classify},
+			subclassification = #{subclassification},
+			sys_office_id = #{sysOfficeId},
+			sys_user_id = #{sysUserId},
+			pro_sys_user_id = #{createBy.id},
+			status = #{status},
+			text = #{text},
+			start_user_id = #{startUserId},
+			quedetail = #{quedetail},
+			quedetail_id = #{quedetailId},
+			item1 = #{item1},
+			item2 = #{item2},
+			item3 = #{item3},
+			item4 = #{item4},
+			item5 = #{item5},
+			update_by = #{updateBy.id}, 
+			update_date = #{updateDate}, 
+			old_user_id = #{oldUserId},
+			new_user_id = #{newUserId},
+			remake = #{remake},
+			upl = #{upl}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<update id="updateById">
+		UPDATE sys_question SET 	
+			old_user_id = #{oldUserId},
+			new_user_id = #{newUserId}
+			WHERE id = #{id}
+	</update>
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM sys_question
+		WHERE id = #{id}
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE sys_question SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="SysQuestion" statementType="STATEMENT">
+		select * FROM sys_question  where ${propertyName} = '${value}'
+	</select>
+	
+</mapper>

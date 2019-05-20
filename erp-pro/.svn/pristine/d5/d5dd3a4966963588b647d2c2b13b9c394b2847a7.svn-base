@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.wms.wmslocator.mapper.WmsLocatorMapper">
+    
+	<sql id="wmsLocatorColumns">
+		a.id AS "id",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag",
+		a.wms_inventory_id AS "wmsInventoryId",
+		a.locator_code AS "locatorCode",
+		a.item_01 AS "item01",
+		a.item_02 AS "item02",
+		a.item_03 AS "item03",
+		a.item_04 AS "item04",
+		a.item_05 AS "item05",
+		wi.inventory_code AS "inventoryCode",
+		wi.inventory_name AS "inventoryName",
+		wi.inventory_code AS "wmsInventoryCode",
+		wi.inventory_name AS "wmsInventoryName"
+	</sql>
+	
+	<sql id="wmsLocatorJoins">
+		LEFT JOIN wms_inventory wi ON wi.id = a.wms_inventory_id
+	</sql>
+	
+    
+	<select id="get" resultType="WmsLocator" >
+		SELECT 
+			<include refid="wmsLocatorColumns"/>
+		FROM wms_locator a
+		<include refid="wmsLocatorJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="WmsLocator" >
+		SELECT 
+			<include refid="wmsLocatorColumns"/>
+		FROM wms_locator a
+		<include refid="wmsLocatorJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			${dataScope}
+			<if test="wmsInventoryId != null and wmsInventoryId != ''">
+				AND a.wms_inventory_id like CONCAT('%',#{wmsInventoryId},'%')
+			</if>
+			<if test="locatorCode != null and locatorCode != ''">
+				AND a.locator_code like CONCAT('%',#{locatorCode},'%')
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="WmsLocator" >
+		SELECT 
+			<include refid="wmsLocatorColumns"/>
+		FROM wms_locator a
+		<include refid="wmsLocatorJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			${dataScope}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO wms_locator(
+			id,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks,
+			del_flag,
+			wms_inventory_id,
+			locator_code,
+			item_01,
+			item_02,
+			item_03,
+			item_04,
+			item_05
+		) VALUES (
+			#{id},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remarks},
+			#{delFlag},
+			#{wmsInventoryId},
+			#{locatorCode},
+			#{item01},
+			#{item02},
+			#{item03},
+			#{item04},
+			#{item05}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE wms_locator SET 	
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remarks = #{remarks},
+			wms_inventory_id = #{wmsInventoryId},
+			locator_code = #{locatorCode},
+			item_01 = #{item01},
+			item_02 = #{item02},
+			item_03 = #{item03},
+			item_04 = #{item04},
+			item_05 = #{item05}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM wms_locator
+		WHERE id = #{id}
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE wms_locator SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="WmsLocator" statementType="STATEMENT">
+		select * FROM wms_locator  where ${propertyName} = '${value}'
+	</select>
+	
+	
+	<select id="getDataByWmsinventoryId" resultType="WmsLocator" >
+		SELECT 
+			<include refid="wmsLocatorColumns"/>
+		FROM wms_locator a
+		<include refid="wmsLocatorJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL} AND
+			a.wms_inventory_id = #{wmsInventoryId}
+			${dataScope}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+</mapper>

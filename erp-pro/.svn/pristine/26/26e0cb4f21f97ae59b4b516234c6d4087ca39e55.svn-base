@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.sys.sysquestion.mapper.SysQueTransferMapper">
+    
+	<sql id="sysQueTransferColumns">
+		a.id AS "id",
+		a.sys_user_id AS "sysUserId",
+		a.sys_office_id AS "sysOfficeId",
+		a.sys_que_id AS "sysQueId",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.pro_sys_user_id AS "proSysUserId",
+		a.transfer_reason AS "transferReason",
+		sq.title as "queTitle",
+		sysUserId.name as "sysUserName",
+		sysOfficeId.name as "sysOfficeName",
+		proSysUserId.name as "proSysUserName"
+	</sql>
+	
+	<sql id="sysQueTransferJoins">
+		
+		LEFT JOIN sys_user sysUserId ON sysUserId.id = a.sys_user_id
+		LEFT JOIN sys_office sysOfficeId ON sysOfficeId.id = a.sys_office_id
+		LEFT JOIN sys_user proSysUserId ON proSysUserId.id = a.pro_sys_user_id
+		left join sys_question sq on sq.id=a.sys_que_id
+	</sql>
+	
+    
+	<select id="get" resultType="SysQueTransfer" >
+		SELECT 
+			<include refid="sysQueTransferColumns"/>
+		FROM sys_que_transfer a
+		<include refid="sysQueTransferJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="SysQueTransfer" >
+		SELECT 
+			<include refid="sysQueTransferColumns"/>
+		FROM sys_que_transfer a
+		<include refid="sysQueTransferJoins"/>
+		<where>	
+			a.sys_que_id=#{sysQueId} order by a.create_date	desc
+		</where>
+	</select>
+	
+	<select id="findAllList" resultType="SysQueTransfer" >
+		SELECT 
+			<include refid="sysQueTransferColumns"/>
+		FROM sys_que_transfer a
+		<include refid="sysQueTransferJoins"/>
+		<where>
+			
+			${dataScope}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO sys_que_transfer(
+			id,
+			sys_user_id,
+			sys_office_id,
+			sys_que_id,
+			create_by,
+			create_date,
+			pro_sys_user_id,
+			transfer_reason
+		) VALUES (
+			#{id},
+			#{createBy.id},
+			#{sysOfficeId},
+			#{sysQueId},
+			#{createBy.id},
+			#{createDate},
+			#{proSysUserId},
+			#{transferReason}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE sys_que_transfer SET 	
+			sys_user_id = #{createBy.id},
+			sys_office_id = #{sysOfficeId},
+			sys_que_id = #{sysQueId},
+			pro_sys_user_id = #{proSysUserId},
+			transfer_reason = #{transferReason}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM sys_que_transfer
+		WHERE id = #{id}
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE sys_que_transfer SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="SysQueTransfer" statementType="STATEMENT">
+		select * FROM sys_que_transfer  where ${propertyName} = '${value}'
+	</select>
+	
+</mapper>

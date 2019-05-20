@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.wms.wmsinvbalancebilllist.mapper.WmsInvBalanceBillListVMapper">
+    
+	<sql id="wmsInvBalanceBillListVColumns">
+		a.id AS "id",
+		a.wms_inv_balance_bill_id AS "wmsInvBalanceBillId",
+		a.year AS "year",
+		a.period AS "period",
+		a.start_date AS "startDate",
+		a.end_date AS "endDate",
+		a.wms_item_inventory_id AS "wmsItemInventoryId",
+		a.item_code AS "itemCode",
+		a.item_name AS "itemName",
+		a.current_init_inv_qty AS "currentInitInvQty",
+		a.current_sumup_in_qty AS "currentSumupInQty",
+		a.current_sumup_out_qty AS "currentSumupOutQty",
+		a.current_sumup_adjust_qty AS "currentSumupAdjustQty",
+		a.current_onhand_qty AS "currentOnhandQty",
+		a.engaged_qty AS "engagedQty",
+		a.take_away_engaged_qty AS "takeAwayEngagedQty",
+		a.in_price AS "inPrice",
+		a.inventory_status AS "inventoryStatus",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks"
+	</sql>
+	
+	<sql id="wmsInvBalanceBillListVJoins">
+		
+	</sql>
+	
+    
+	<select id="get" resultType="WmsInvBalanceBillListV" >
+		SELECT 
+			<include refid="wmsInvBalanceBillListVColumns"/>
+		FROM wms_inv_balance_bill_list_v a
+		<include refid="wmsInvBalanceBillListVJoins"/>
+		WHERE a.wms_inv_balance_bill_id = #{wmsInvBalanceBillId} LIMIT 1
+	</select>
+	
+	<select id="findList" resultType="WmsInvBalanceBillListV" >
+		SELECT 
+			<include refid="wmsInvBalanceBillListVColumns"/>
+		FROM wms_inv_balance_bill_list_v a
+		<include refid="wmsInvBalanceBillListVJoins"/>
+		<where>
+			${dataScope}
+			<if test="wmsInvBalanceBillId != null and wmsInvBalanceBillId != ''">
+				AND a.wms_inv_balance_bill_id = #{wmsInvBalanceBillId}
+			</if>
+			<if test="itemCode != null and itemCode != ''">
+				AND a.item_code like CONCAT('%,', #{itemCode}, ',%')
+			</if>
+			<if test="itemName != null and itemName != ''">
+				AND a.item_name like CONCAT('%,', #{item_name}, ',%')
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="WmsInvBalanceBillListV" >
+		SELECT 
+			<include refid="wmsInvBalanceBillListVColumns"/>
+		FROM wms_inv_balance_bill_list_v a
+		<include refid="wmsInvBalanceBillListVJoins"/>
+		<where>
+			
+			${dataScope}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO wms_inv_balance_bill_list_v(
+			id,
+			wms_inv_balance_bill_id,
+			year,
+			period,
+			start_date,
+			end_date,
+			wms_item_inventory_id,
+			item_code,
+			item_name,
+			current_init_inv_qty,
+			current_sumup_in_qty,
+			current_sumup_out_qty,
+			current_sumup_adjust_qty,
+			current_onhand_qty,
+			engaged_qty,
+			take_away_engaged_qty,
+			in_price,
+			inventory_status,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks
+		) VALUES (
+			#{id},
+			#{wmsInvBalanceBillId},
+			#{year},
+			#{period},
+			#{startDate},
+			#{endDate},
+			#{wmsItemInventoryId},
+			#{itemCode},
+			#{itemName},
+			#{currentInitInvQty},
+			#{currentSumupInQty},
+			#{currentSumupOutQty},
+			#{currentSumupAdjustQty},
+			#{currentOnhandQty},
+			#{engagedQty},
+			#{takeAwayEngagedQty},
+			#{inPrice},
+			#{inventoryStatus},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remarks}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE wms_inv_balance_bill_list_v SET 	
+			wms_inv_balance_bill_id = #{wmsInvBalanceBillId},
+			year = #{year},
+			period = #{period},
+			start_date = #{startDate},
+			end_date = #{endDate},
+			wms_item_inventory_id = #{wmsItemInventoryId},
+			item_code = #{itemCode},
+			item_name = #{itemName},
+			current_init_inv_qty = #{currentInitInvQty},
+			current_sumup_in_qty = #{currentSumupInQty},
+			current_sumup_out_qty = #{currentSumupOutQty},
+			current_sumup_adjust_qty = #{currentSumupAdjustQty},
+			current_onhand_qty = #{currentOnhandQty},
+			engaged_qty = #{engagedQty},
+			take_away_engaged_qty = #{takeAwayEngagedQty},
+			in_price = #{inPrice},
+			inventory_status = #{inventoryStatus},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remarks = #{remarks}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM wms_inv_balance_bill_list_v
+		WHERE id = #{id}
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE wms_inv_balance_bill_list_v SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="WmsInvBalanceBillListV" statementType="STATEMENT">
+		select * FROM wms_inv_balance_bill_list_v  where ${propertyName} = '${value}'
+	</select>
+	
+</mapper>

@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.wms.wmsinvoutbill.mapper.WmsInvOutBillListMapper">
+    
+	<sql id="wmsInvOutBillListColumns">
+		a.id AS "id",
+		a.wms_inv_out_bill_id AS "wmsInvOutBill.id",
+		a.wms_locator_id AS "wmsLocatorId",
+		locator.locator_code AS "wmsLocatorCode",
+		a.mds_item_id AS "mdsItemId",
+		item.item_code As "itemCode",
+		item.item_name As "itemName",
+		item.marque As "itemMarque",
+		item.specs As "itemSpecs",
+		a.wms_item_inventory_id AS "wmsItemInventoryId",
+		a.quality_no AS "qualityNo",
+		a.supply_regular_no AS "supplyRegularNo",
+		a.apply_qty AS "applyQty",
+		a.out_qty AS "outQty",
+		a.out_sys_user_id AS "outSysUserId",
+		outUser.name AS "outSysUserName",
+		a.out_date AS "outDate",
+		a.leader_user_id AS "leaderUserId",
+		leaderUser.name AS "leaderSysUserName",
+		a.note AS "note",
+		a.status AS "status",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag",
+		wii.current_onhand_qty - wii.take_away_engaged_qty AS "canUseQty"
+	</sql>
+	
+	<sql id="wmsInvOutBillListJoins">
+			LEFT JOIN wms_inv_out_bill b ON b.id = a.wms_inv_out_bill_id
+			LEFT JOIN wms_locator locator on locator.id = a.wms_locator_id
+			LEFT JOIN wms_item_inventory wii on a.mds_item_id = wii.mds_item_id and a.wms_locator_id = wii.wms_locator_id
+			LEFT JOIN mds_item item on item.id = a.mds_item_id
+			LEFT JOIN sys_user outUser on outUser.id = a.out_sys_user_id
+			LEFT JOIN sys_user leaderUser ON leaderUser.id = a.leader_user_id
+	</sql>
+	
+    
+	<select id="get" resultType="WmsInvOutBillList" >
+		SELECT 
+			<include refid="wmsInvOutBillListColumns"/>
+		FROM wms_inv_out_bill_list a
+		<include refid="wmsInvOutBillListJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="WmsInvOutBillList" >
+		SELECT 
+			<include refid="wmsInvOutBillListColumns"/>
+		FROM wms_inv_out_bill_list a
+		<include refid="wmsInvOutBillListJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			${dataScope}
+			<if test="wmsInvOutBill.id != null and wmsInvOutBill.id != ''">
+				AND a.wms_inv_out_bill_id = #{wmsInvOutBill.id}
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.create_date ASC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="WmsInvOutBillList" >
+		SELECT 
+			<include refid="wmsInvOutBillListColumns"/>
+		FROM wms_inv_out_bill_list a
+		<include refid="wmsInvOutBillListJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			${dataScope}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.create_date ASC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO wms_inv_out_bill_list(
+			id,
+			wms_inv_out_bill_id,
+			wms_locator_id,
+			mds_item_id,
+			wms_item_inventory_id,
+			quality_no,
+			supply_regular_no,
+			apply_qty,
+			out_qty,
+			out_sys_user_id,
+			out_date,
+			leader_user_id,
+			note,
+			status,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks,
+			del_flag
+		) VALUES (
+			#{id},
+			#{wmsInvOutBill.id},
+			#{wmsLocatorId},
+			#{mdsItemId},
+			#{wmsItemInventoryId},
+			#{qualityNo},
+			#{supplyRegularNo},
+			#{applyQty},
+			#{outQty},
+			#{outSysUserId},
+			#{outDate},
+			#{leaderUserId},
+			#{note},
+			#{status},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remarks},
+			#{delFlag}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE wms_inv_out_bill_list SET 	
+			wms_inv_out_bill_id = #{wmsInvOutBill.id},
+			wms_locator_id = #{wmsLocatorId},
+			mds_item_id = #{mdsItemId},
+			wms_item_inventory_id = #{wmsItemInventoryId},
+			quality_no = #{qualityNo},
+			supply_regular_no = #{supplyRegularNo},
+			apply_qty = #{applyQty},
+			out_qty = #{outQty},
+			out_sys_user_id = #{outSysUserId},
+			out_date = #{outDate},
+			leader_user_id = #{leaderUserId},
+			note = #{note},
+			status = #{status},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remarks = #{remarks}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM wms_inv_out_bill_list
+		<choose>
+			<when test="id !=null and id != ''">
+				WHERE id = #{id}
+			</when>
+			<otherwise>
+				WHERE wms_inv_out_bill_id = #{wmsInvOutBill.id}
+			</otherwise>
+		</choose>
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE wms_inv_out_bill_list SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		<choose>
+			<when test="id !=null and id != ''">
+				WHERE id = #{id}
+			</when>
+			<otherwise>
+				WHERE wms_inv_out_bill_id = #{wmsInvOutBill.id}
+			</otherwise>
+		</choose>
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="WmsInvOutBillList" statementType="STATEMENT">
+		select * FROM wms_inv_out_bill_list  where ${propertyName} = '${value}'
+	</select>
+	
+</mapper>

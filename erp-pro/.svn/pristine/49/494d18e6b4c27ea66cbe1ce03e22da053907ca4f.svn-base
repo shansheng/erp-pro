@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.mds.mdsMissQuery.mapper.MdsMissQueryMapper">
+    
+<!-- 从表中获取 -->
+	<sql id="mdsProcurementPlanColumns2">
+		a.id AS "id",
+		a.mds_item_id AS "mdsItemId",
+		a.classify AS "classify",
+		a.item_code AS "itemCode",
+		a.item_name AS "itemName",
+		a.normal_field AS "normalField",
+		a.modelnm AS "modelnm",
+		a.specs AS "specs",
+		a.purchase_amount AS "purchaseAmount",
+		a.required_date AS "requiredDate",
+		a.state AS "state",
+		a.procurement_way AS "procurementWay",
+		a.from_id AS "fromId",
+		a.source_type AS "sourceType",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate"
+	</sql>
+	
+		<select id="get" resultType="MdsProcurementPlan" >
+		SELECT 
+			<include refid="mdsProcurementPlanColumns2"/>
+		FROM mds_procurement_plan a
+		WHERE a.id = #{id}
+	</select>
+
+	<select id="findList" resultType="MdsMissQuery">
+	   SELECT
+        a.from_id AS "fromId",
+		s.contract_no AS "contractNo",
+		m.item_name AS "mesName",
+		m.item_code AS "mesCode",
+	    sm.num AS "amount",
+	    s.purchase_start_date AS "purchaseStartDate",
+	    s.purchase_end_date AS "purchaseEndDate"
+		FROM  mds_miss_query_v a
+		left join sys_market_list sm on sm.id = a.from_id
+  		left join sys_market s on s.id = sm.sys_market_id
+		left join mds_item m on m.id=sm.mds_item_id
+		<where>
+		    <if test="mesCode != null and mesCode != ''">
+				AND m.item_code LIKE 
+					<if test="dbName == 'oracle'">'%'||#{mesCode}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{mesCode}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{mesCode},'%')</if>
+			</if>
+			<if test="mesName != null and mesName != ''">
+				AND m.item_name LIKE 
+					<if test="dbName == 'oracle'">'%'||#{mesName}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{mesName}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{mesName},'%')</if>
+			</if>
+		</where>
+		group by a.from_id,s.contract_no,m.item_name,m.item_code,sm.num,s.purchase_start_date,s.purchase_end_date
+	</select>
+
+	
+	<select id="findByFromId" resultType="MdsMissQuery">
+	  select
+	   a.id AS "id",
+	   a.item_code AS "itemCode",
+	   a.item_name AS "itemName",
+	   a.from_id AS "fromId",
+	   a.purchase_amount AS "purchaseAmount",
+	   a.arrivalnum AS "arrivalnum",
+	   a.miss_query_num AS "missQueryNum"
+	   from mds_miss_query_v a
+	   where a.from_id =#{fromId}
+	</select>
+	<select id="findPurchaseMiss" resultType ="MdsMissQuery">
+	   select 
+	   a.id AS "id",
+	   a.item_code AS "itemCode",
+	   a.item_name AS "itemName",
+	   a.normal_field AS "normalField",
+	   a.modelnm AS "modelnm",
+	   a.specs AS "specs",
+	   a.purchase_amount AS "purchaseAmount",
+	   a.required_date AS "requiredDate",
+	   a.arrivalnum AS "arrivalnum",
+	   (a.purchase_amount-a.arrivalnum) AS "missQueryNum"
+	   FROM  mds_procurement_plan a
+	   <where>
+	    a.procurement_way='批量采购' and (a.purchase_amount-a.arrivalnum)>0
+	      <if test="beginRequiredDate != null and endRequiredDate != null and beginRequiredDate != '' and endRequiredDate != ''">
+				AND a.required_date BETWEEN #{beginRequiredDate} AND #{endRequiredDate}
+			</if>
+			<if test="itemCode != null and itemCode != ''">
+				AND a.item_code LIKE 
+					<if test="dbName == 'oracle'">'%'||#{itemCode}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{itemCode}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{itemCode},'%')</if>
+			</if>
+			<if test="itemName != null and itemName != ''">
+				AND a.item_name LIKE 
+					<if test="dbName == 'oracle'">'%'||#{itemName}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{itemName}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{itemName},'%')</if>
+			</if>
+	   </where>
+	</select >
+</mapper>

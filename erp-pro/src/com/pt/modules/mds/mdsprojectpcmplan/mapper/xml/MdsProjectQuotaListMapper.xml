@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.mds.mdsprojectpcmplan.mapper.MdsProjectQuotaListMapper">
+    
+	<sql id="mdsProjectQuotaColumns">
+		b.sys_market_list_id AS "sysMarketListId",
+		a.id AS "mdsQuotaDetailId",
+		a.mds_item_id AS "itemId",
+		a.QUOTA*c.num AS "amount",
+		a.QUOTA*c.num AS "purchaseAmount",
+		d.purchase_end_date AS "requiredDate",
+		a.ADD_PROCUREMENT AS "state",
+		F.LABEL AS "classify",
+		a.item_code AS "itemCode",
+		a.item_name AS "itemName",
+		a.normal_field AS "normalField",
+		a.model_num AS "modelNum",
+		a.specs AS "specs",
+		wm.CURRENT_ONHAND_QTY AS "pcs"
+	</sql>
+	
+	<sql id="findTemporaryListColumns">
+		a.id AS "sysMarketListId",
+		a.mds_item_id AS "itemId",
+		a.num AS "amount",
+		a.num AS "purchaseAmount",
+		b.purchase_end_date AS "requiredDate",
+		a.ADD_PROCUREMENT AS "state",
+		'未分类' AS "classify",
+		c.item_code AS "itemCode",
+		c.item_name AS "itemName",
+		c.normal_field AS "normalField",
+		c.model_num AS "modelNum",
+		c.specs AS "specs",
+		wm.CURRENT_ONHAND_QTY AS "pcs"
+	</sql>
+	
+	<sql id="mdsProjectQuotaJoins">
+			LEFT JOIN MDS_QUOTA b on b.id = a.MDS_QUOTA_ID
+			LEFT JOIN SYS_MARKET_LIST c on c.id = b.sys_market_List_id
+			LEFT JOIN SYS_MARKET d on d.id = c.sys_market_id
+			LEFT JOIN MDS_ITEM e on e.id = a.mds_item_id
+			LEFT JOIN MDS_QUOTA_CLASSIFY_V F ON F.VALUE = A .classify
+			LEFT JOIN WMS_MAIN_INVENTORY wm ON wm.item_id = a.mds_item_id
+	</sql>
+	<sql id="findTemporaryListJoins">
+			LEFT JOIN sys_market b on b.id = a.sys_market_id
+			LEFT JOIN mds_item c on c.id = a.mds_item_id
+			LEFT JOIN WMS_MAIN_INVENTORY wm ON wm.item_id = a.mds_item_id
+	</sql>
+	
+    
+	<select id="get" resultType="MdsProjectQuotaList" >
+		SELECT 
+			<include refid="mdsProjectQuotaColumns"/>
+		FROM MDS_QUOTA_DETAIL a
+		<include refid="mdsProjectQuotaJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<!-- 如果销售订单中的订单类型为项目,按照这个查询物料信息 -->
+	<select id="findList" resultType="MdsProjectQuotaList" >
+		SELECT 
+			<include refid="mdsProjectQuotaColumns"/>
+		FROM MDS_QUOTA_DETAIL a
+		<include refid="mdsProjectQuotaJoins"/>
+		<where>
+			${dataScope}
+			AND e.out_source_type = '1'
+			AND A.ADD_PROCUREMENT = '0'
+			AND A.IS_VERSION = '1'
+			AND c.id = #{sysMarketListId} 
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.classify ASC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="MdsProjectQuotaList" >
+		SELECT 
+			<include refid="mdsProjectQuotaColumns"/>
+		FROM MDS_QUOTA_DETAIL a
+		<include refid="mdsProjectQuotaJoins"/>
+		<where>
+			${dataScope}
+			and b.state = '30'
+			AND e.out_source_type = '1'
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.create_date ASC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<!-- 查找分类数据 -->
+	<select id="findClassify" resultType="String">
+		SELECT
+			VALUE
+		FROM
+			MDS_QUOTA_CLASSIFY_V
+		WHERE
+			LABEL = #{id}
+	</select>
+	
+	<!-- 如果销售中订单类型为临时,按照这个查询物料列表 -->
+	<select id="findTemporaryList" resultType="MdsProjectQuotaList">
+		select
+			<include refid="findTemporaryListColumns"/>
+		from
+			sys_market_list a
+			<include refid="findTemporaryListJoins"/>
+		where
+			${dataScope}
+			a.id = #{sysMarketListId}
+			AND	b.milestone_status = '2'
+			AND c.out_source_type = '1'
+	</select>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="MdsProjectQuotaList" statementType="STATEMENT">
+		select * FROM mds_projectpcmplan  where ${propertyName} = '${value}'
+	</select>
+</mapper>
+
+
+
+
+
+
+
+

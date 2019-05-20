@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.mds.mdsquota.mapper.MdsQuotaMapper">
+    
+	<sql id="mdsQuotaColumns">
+		a.mds_item_id AS "mdsItemId",
+		a.sys_market_id AS "sysMarketId",
+		a.state AS "state",
+		a.sys_market_list_id AS "sysMarketListId",
+		a.column2 AS "column2",
+		a.column3 AS "column3",
+		a.column4 AS "column4",
+		a.column5 AS "column5",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		C.CLIENT_ID AS "clientId",
+		D .CLIENT_NAME AS "clientName",
+		E.ITEM_NAME AS "mdsItemName",
+		E.ITEM_CODE AS "mdsItemCode",
+		E.SPECS AS "mdsItemspecs",
+		E.MODEL_NUM AS "mdsItemmodelNum",
+		B.NUM AS "num"
+	</sql>
+	
+	<sql id="getMdsQuota">
+		a.id as "id",
+		a.mds_item_id AS "mdsItemId",
+		a.sys_market_id AS "sysMarketId",
+		a.state AS "state",
+		a.sys_market_list_id AS "sysMarketListId",
+		a.column2 AS "column2",
+		a.column3 AS "column3",
+		a.column4 AS "column4",
+		a.column5 AS "column5",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		C.CLIENT_ID AS "clientId",
+		D .CLIENT_NAME AS "clientName",
+		E.ITEM_NAME AS "mdsItemName",
+		E.ITEM_CODE AS "mdsItemCode",
+		E.SPECS AS "mdsItemspecs",
+		E.MODEL_NUM AS "mdsItemmodelNum",
+		B.NUM AS "num",
+		b.add_procurement as "addProcurement",
+		b.is_add as "isAdd"
+	</sql>
+	
+	<sql id="mdsQuotaJoins">
+		LEFT JOIN SYS_MARKET_LIST B on B.id = a.SYS_MARKET_List_ID
+		LEFT JOIN SYS_MARKET C on c.id = B.SYS_MARKET_ID
+		LEFT JOIN CLIENT D ON D.ID = C.CLIENT_ID
+		LEFT JOIN MDS_ITEM E ON E.ID = B.MDS_ITEM_ID
+	</sql>
+	
+    
+    <select id="findByMarketListId" resultType="MdsQuota" >
+		SELECT 
+			<include refid="getMdsQuota"/>
+		FROM mds_quota a
+		<include refid="mdsQuotaJoins"/>
+		WHERE a.sys_market_list_id = #{sysMarketListId}
+	</select>
+	
+    <select id="getByMarketItemId" resultType="MdsQuota" >
+		SELECT 
+			<include refid="getMdsQuota"/>
+		FROM mds_quota a
+		<include refid="mdsQuotaJoins"/>
+		WHERE a.sys_market_id = #{sysMarketId} and a.mds_item_id =#{mdsItemId}
+	</select>
+    
+    
+	<select id="get" resultType="MdsQuota" >
+		SELECT 
+			<include refid="getMdsQuota"/>
+		FROM mds_quota a
+		<include refid="mdsQuotaJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="MdsQuota" >
+		SELECT 
+			DISTINCT(a.id) AS "id",
+			<include refid="mdsQuotaColumns"/>
+		FROM mds_quota a
+		<include refid="mdsQuotaJoins"/>
+		<where>
+			
+			${dataScope}
+			<if test="clientId != null and clientId != ''">
+				AND C.CLIENT_ID = #{clientId}
+			</if>
+			<if test="mdsItemCode != null and mdsItemCode != ''">
+				AND E.ITEM_CODE like
+					<if test="dbName == 'oracle'">'%'||#{mdsItemCode}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{mdsItemCode}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{mdsItemCode},'%')</if>
+			</if>
+			<if test="mdsItemName != null and mdsItemName != ''">
+				AND E.ITEM_NAME like
+					<if test="dbName == 'oracle'">'%'||#{mdsItemName}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{mdsItemName}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{mdsItemName},'%')</if>
+			</if>
+			<choose>
+				<when test="state != null and state != ''">
+					AND a.state = #{state}
+				</when>
+			<!-- <otherwise>
+					AND a.state != '30'
+			</otherwise> -->
+		</choose>
+			<!-- <if test="createBy.office.id != null and createBy.office.id != ''">
+				AND E.sys_office_id = #{createBy.office.id}
+			</if> -->
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="MdsQuota" >
+		SELECT 
+			DISTINCT(a.id) AS "id",
+			<include refid="mdsQuotaColumns"/>
+		FROM mds_quota a
+		<include refid="mdsQuotaJoins"/>
+		<where>
+			
+			${dataScope}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO mds_quota(
+			id,
+			mds_item_id,
+			sys_market_id,
+			state,
+			sys_market_list_id,
+			column2,
+			column3,
+			column4,
+			column5,
+			create_by,
+			create_date,
+			update_by,
+			update_date
+		) VALUES (
+			#{id},
+			#{mdsItemId},
+			#{sysMarketId},
+			#{state},
+			#{sysMarketListId},
+			#{column2},
+			#{column3},
+			#{column4},
+			#{column5},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE mds_quota SET
+			state = #{column2},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate}
+		WHERE id = #{id}
+	</update>
+	
+	<!-- 修改材料定额状态 -->
+	<update id="changeConfirm">
+		UPDATE mds_quota SET
+			state = #{state},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM mds_quota
+		WHERE id = #{id}
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE mds_quota SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="MdsQuota" statementType="STATEMENT">
+		select * FROM mds_quota  where ${propertyName} = '${value}'
+	</select>
+	
+</mapper>

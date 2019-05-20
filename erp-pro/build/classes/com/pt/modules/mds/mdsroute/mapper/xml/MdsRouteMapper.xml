@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.mds.mdsroute.mapper.MdsRouteMapper">
+    
+		<sql id="mdsRouteColumns">
+		a.id AS "id",
+		a.mds_item_id AS "mdsItemId",
+		a.pro_mds_item_id AS "proMdsItemId",
+		a.route_no AS "routeNo",
+		a.route_ed AS "routeEd",
+		a.route_desc AS "routeDesc",
+		a.route_type AS "routeType",
+		a.route_class AS "routeClass",
+		a.route_status AS "routeStatus",
+		a.effective_type AS "effectiveType",
+		a.effective_date AS "effectiveDate",
+		a.ineffective_date AS "ineffectiveDate",
+		a.effective_value AS "effectiveValue",
+		a.ineffective_value AS "ineffectiveValue",
+		a.item_01 AS "item01",
+		a.item_02 AS "item02",
+		a.item_03 AS "item03",
+		a.item_04 AS "item04",
+		a.item_05 AS "item05",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag",
+		a.sys_office_id AS "office.id",
+		o.name AS "office.name",
+		get_dict_label('MDS_ROUTE_STATUS', a.route_status) AS "routeStatusName",
+		mi.item_code AS "mdsItemCode",
+		mi.item_name AS "mdsItemName",
+		mi.item_version AS "itemVersion",
+		mi.item_type AS "itemType",
+		get_dict_label('itemType', mi.item_type) AS "mdsItemTypeName",
+		mii.item_code AS "proMdsItemCode",
+		mii.item_name AS "proMdsItemName"
+	</sql>
+	
+	<sql id="mdsRouteJoins">
+		Left Join mds_item mi On a.mds_item_id = mi.id
+		Left Join mds_item mii On a.pro_mds_item_id = mii.id
+		Left Join sys_office o On a.sys_office_id = o.id
+	</sql>
+	
+    
+	<select id="get" resultType="MdsRoute" >
+		SELECT 
+			<include refid="mdsRouteColumns"/>
+		FROM mds_route a
+		<include refid="mdsRouteJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="MdsRoute" >
+		SELECT 
+			<include refid="mdsRouteColumns"/>
+		FROM mds_route a
+		<include refid="mdsRouteJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			${dataScope}
+			<if test="mdsItemId != null and mdsItemId != ''">
+				AND mi.id = #{mdsItemId}
+			</if>
+			<if test="proMdsItemId != null and proMdsItemId != ''">
+				AND mii.id = #{proMdsItemId}
+			</if>
+			<if test="routeNo != null and routeNo != ''">
+				AND a.route_no like concat(concat('%',#{routeNo}),'%')
+				
+			</if>
+			<if test="routeEd != null and routeEd != ''">
+				AND a.route_ed like concat(concat('%',#{routeEd}),'%')
+				
+			</if>
+			<if test="routeDesc != null and routeDesc != ''">
+				AND a.route_desc like concat(concat('%',#{routeDesc}),'%')
+			</if>
+			<if test="office != null and office.id != null and office.id != ''">
+				AND a.sys_office_id = #{office.id}
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="MdsRoute" >
+		SELECT 
+			<include refid="mdsRouteColumns"/>
+		FROM mds_route a
+		<include refid="mdsRouteJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			${dataScope}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO mds_route(
+			id,
+			mds_item_id,
+			pro_mds_item_id,
+			route_no,
+			route_ed,
+			route_desc,
+			route_type,
+			route_class,
+			route_status,
+			sys_office_id,
+			effective_type,
+			effective_date,
+			ineffective_date,
+			effective_value,
+			ineffective_value,
+			item_01,
+			item_02,
+			item_03,
+			item_04,
+			item_05,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks,
+			del_flag
+		) VALUES (
+			#{id},
+			#{mdsItemId},
+			#{proMdsItemId},
+			#{routeNo},
+			#{routeEd},
+			#{routeDesc},
+			#{routeType},
+			#{routeClass},
+			#{routeStatus},
+			#{office.id},
+			#{effectiveType},
+			#{effectiveDate},
+			#{ineffectiveDate},
+			#{effectiveValue},
+			#{ineffectiveValue},
+			#{item01},
+			#{item02},
+			#{item03},
+			#{item04},
+			#{item05},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remarks},
+			#{delFlag}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE mds_route SET 	
+			mds_item_id = #{mdsItemId},
+			pro_mds_item_id = #{proMdsItemId},
+			route_no = #{routeNo},
+			route_ed = #{routeEd},
+			route_desc = #{routeDesc},
+			route_type = #{routeType},
+			route_class = #{routeClass},
+			route_status = #{routeStatus},
+			sys_office_id = #{office.id},
+			effective_type = #{effectiveType},
+			effective_date = #{effectiveDate},
+			ineffective_date = #{ineffectiveDate},
+			effective_value = #{effectiveValue},
+			ineffective_value = #{ineffectiveValue},
+			item_01 = #{item01},
+			item_02 = #{item02},
+			item_03 = #{item03},
+			item_04 = #{item04},
+			item_05 = #{item05},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remarks = #{remarks}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM mds_route
+		WHERE id = #{id}
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE mds_route SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="MdsRoute" statementType="STATEMENT">
+		select * FROM mds_route  where ${propertyName} = '${value}'
+	</select>
+	
+</mapper>

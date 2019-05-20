@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="com.pt.modules.mds.mdsarrivalcheckout.mapper.MdsArrivalCheckoutMapper">
+
+	<sql id="mdsArrivalCheckoutColumns">
+		a.id AS "id",
+		a.item_code AS "itemCode",
+		a.item_name AS
+		"itemName",
+		a.normal_field AS "normalField",
+		a.modelnm AS "modelnm",
+		a.specs AS "specs",
+		a.supplier_name AS "supplierName",
+		a.mds_procurment_plan_id AS "mdsProcurmentPlanId",
+		a.arrival_num AS
+		"arrivalNum",
+		a.create_by AS "createBy.id",
+		a.create_name AS
+		"createBy.name",
+		a.create_date AS "createDate",
+		a.qualified AS
+		"qualified",
+		a.disqualification AS "disqualification",
+		a.update_by AS
+		"updateBy.id",
+		a.update_name AS "updateBy.name",
+		a.update_date AS
+		"updateDate",
+		a.in_storage AS "inStorage",
+		a.in_storage_by AS
+		"inStorageBy.id",
+		a.in_storage_date AS "inStorageDate",
+		a.state AS "state",
+		a.in_stoarge_state AS "inStoargeState"
+	</sql>
+
+	<sql id="mdsArrivalCheckoutJoins">
+
+	</sql>
+
+<select id="getByMdsProcurmentPlanId" resultType="MdsArrivalCheckout">
+		SELECT
+		<include refid="mdsArrivalCheckoutColumns" />
+		FROM mds_arrival_checkout a
+		<include refid="mdsArrivalCheckoutJoins" />
+		WHERE a.mds_procurment_plan_id = #{mdsProcurmentPlanId}
+	</select>
+	
+	
+	<select id="get" resultType="MdsArrivalCheckout">
+		SELECT
+		<include refid="mdsArrivalCheckoutColumns" />
+		FROM mds_arrival_checkout_v a
+		<include refid="mdsArrivalCheckoutJoins" />
+		WHERE a.id = #{id}
+	</select>
+
+	<select id="findList" resultType="MdsArrivalCheckout">
+		SELECT
+		<include refid="mdsArrivalCheckoutColumns" />
+		FROM mds_arrival_checkout_v a
+		<include refid="mdsArrivalCheckoutJoins" />
+		<where>
+			${dataScope}
+			<if test="itemCode != null and itemCode != ''">
+				AND a.item_code LIKE
+				<if test="dbName == 'oracle'">'%'||#{itemCode}||'%'</if>
+				<if test="dbName == 'mssql'">'%'+#{itemCode}+'%'</if>
+				<if test="dbName == 'mysql'">concat('%',#{itemCode},'%')</if>
+			</if>
+			<if test="itemName != null and itemName != ''">
+				AND a.item_name LIKE
+				<if test="dbName == 'oracle'">'%'||#{itemName}||'%'</if>
+				<if test="dbName == 'mssql'">'%'+#{itemName}+'%'</if>
+				<if test="dbName == 'mysql'">concat('%',#{itemName},'%')</if>
+			</if>
+			<if test="supplierId != null and supplierId != ''">
+				AND a.supplier_id = #{supplierId}
+			</if>
+			<!-- <if test="supplierName != null and supplierName != ''"> AND a.supplier_name 
+				LIKE <if test="dbName == 'oracle'">'%'||#{supplierName}||'%'</if> <if test="dbName 
+				== 'mssql'">'%'+#{supplierName}+'%'</if> <if test="dbName == 'mysql'">concat('%',#{supplierName},'%')</if> 
+				</if> -->
+			<choose>
+				<when test="state != null and state != ''">
+					AND a.state = #{state}
+				</when>
+				<otherwise>
+					AND a.state = '0'
+				</otherwise>
+			</choose>
+
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy} , a.create_date ASC
+			</when>
+			<otherwise>
+				ORDER BY a.create_date ASC
+			</otherwise>
+		</choose>
+	</select>
+
+	<select id="findAllList" resultType="MdsArrivalCheckout">
+		SELECT
+		<include refid="mdsArrivalCheckoutColumns" />
+		FROM mds_arrival_checkout_v a
+		<include refid="mdsArrivalCheckoutJoins" />
+		<where>
+			${dataScope}
+		<if test="mdsProcurmentPlanId != null and mdsProcurmentPlanId != ''">
+			AND a.mds_procurment_plan_id = #{mdsProcurmentPlanId}
+		</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy} and a.create_date DESC
+			</when>
+			<otherwise>
+				ORDER BY a.create_date DESC
+			</otherwise>
+		</choose>
+	</select>
+
+	<insert id="insert">
+		INSERT INTO mds_arrival_checkout(
+		id,
+		mds_procurment_plan_id,
+		arrival_num,
+		create_by,
+		create_date
+		) VALUES (
+		#{id},
+		#{mdsProcurmentPlanId},
+		#{arrivalNum},
+		#{createBy.id},
+		#{createDate}
+		)
+	</insert>
+
+	<update id="update">
+		UPDATE mds_arrival_checkout SET
+		qualified = #{qualified},
+		disqualification = #{disqualification},
+		update_by = #{updateBy.id},
+		update_date = #{updateDate},
+		state = #{state}
+		WHERE id = #{id}
+	</update>
+
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="MdsArrivalCheckout"
+		statementType="STATEMENT">
+		select * FROM mds_arrival_checkout where ${propertyName}
+		= '${value}'
+	</select>
+
+</mapper>

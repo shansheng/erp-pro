@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.wms.wmsinvbalancebill.mapper.WmsInvBalanceBillMapper">
+    
+	<sql id="wmsInvBalanceBillColumns">
+		a.id AS "id",
+		a.year AS "year",
+		a.period AS "period",
+		a.start_date AS "startDate",
+		a.end_date AS "endDate",
+		a.operat_sys_user_id AS "operatSysUserId",
+		a.operat_date AS "operatDate",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag",
+		a.wms_inventory_id AS "wmsInventoryId",
+		wi.inventory_name as "inventoryName",
+		a.price_different_cash AS "priceDifferentCash",
+		a.currency_type AS "currencyType",
+		a.wms_fiscal_period_id AS "wmsFiscalPeriodId",
+		a.inv_quality_type AS "invQualityType",
+		a.inv_item_source_type AS "invItemSourceType",
+		su.name as "userName"
+	</sql>
+	
+	<sql id="wmsInvBalanceBillJoins">
+		left join sys_user su on su.id = a.operat_sys_user_id
+		left join wms_inventory wi on wi.id = a.wms_inventory_id
+	</sql>
+	
+    
+	<select id="get" resultType="WmsInvBalanceBill" >
+		SELECT 
+			<include refid="wmsInvBalanceBillColumns"/>
+		FROM wms_inv_balance_bill a
+		<include refid="wmsInvBalanceBillJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="WmsInvBalanceBill" >
+		SELECT 
+			<include refid="wmsInvBalanceBillColumns"/>
+		FROM wms_inv_balance_bill a
+		<include refid="wmsInvBalanceBillJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			${dataScope}
+			<if test="year != null and year != ''">
+				AND a.year = #{year}
+			</if>
+			<if test="period != null and period != ''">
+				AND a.period = #{period}
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="WmsInvBalanceBill" >
+		SELECT 
+			<include refid="wmsInvBalanceBillColumns"/>
+		FROM wms_inv_balance_bill a
+		<include refid="wmsInvBalanceBillJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			${dataScope}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO wms_inv_balance_bill(
+			id,
+			year,
+			period,
+			start_date,
+			end_date,
+			operat_sys_user_id,
+			operat_date,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks,
+			del_flag,
+			wms_inventory_id,
+			price_different_cash,
+			currency_type,
+			wms_fiscal_period_id,
+			inv_quality_type,
+			inv_item_source_type
+		) VALUES (
+			#{id},
+			#{year},
+			#{period},
+			#{startDate},
+			#{endDate},
+			#{operatSysUserId},
+			#{operatDate},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remarks},
+			#{delFlag},
+			#{wmsInventoryId},
+			#{priceDifferentCash},
+			#{currencyType},
+			#{wmsFiscalPeriodId},
+			#{invQualityType},
+			#{invItemSourceType}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE wms_inv_balance_bill SET 	
+			year = #{year},
+			period = #{period},
+			start_date = #{startDate},
+			end_date = #{endDate},
+			operat_sys_user_id = #{operatSysUserId},
+			operat_date = #{operatDate},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remarks = #{remarks},
+			wms_inventory_id = #{wmsInventoryId},
+			price_different_cash = #{priceDifferentCash},
+			currency_type = #{currencyType},
+			wms_fiscal_period_id = #{wmsFiscalPeriodId},
+			inv_quality_type = #{invQualityType},
+			inv_item_source_type = #{invItemSourceType}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM wms_inv_balance_bill
+		WHERE id = #{id}
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE wms_inv_balance_bill SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="WmsInvBalanceBill" statementType="STATEMENT">
+		 select * FROM wms_inv_balance_bill  where ${propertyName} = '${value}'
+	</select>
+	<!-- 库存结转 -->
+	<select id="carryOver" parameterType="java.util.Map" statementType="CALLABLE">  
+		{call ptplus.wms_inv_caryy_over_p(
+				  #{i_wms_inventory_id,jdbcType=VARCHAR,mode=IN},
+				  #{i_year,jdbcType=VARCHAR,mode=IN},
+				  #{i_Period,jdbcType=VARCHAR,mode=IN},
+				  #{i_user_id,jdbcType=VARCHAR,mode=IN},
+				  #{o_Return_Int,jdbcType=INTEGER,mode=OUT},
+				  #{o_Return_String,jdbcType=VARCHAR,mode=OUT}
+			  )
+    	}
+	</select>
+	<!-- 库存结转 -->
+	<select id="carryOverReverse" parameterType="java.util.Map" statementType="CALLABLE">  
+		{call ptplus.wms_inv_caryy_over_reverse_p(
+				  #{i_wms_inventory_id,jdbcType=VARCHAR,mode=IN},
+				  #{i_year,jdbcType=VARCHAR,mode=IN},
+				  #{i_Period,jdbcType=VARCHAR,mode=IN},
+				  #{i_user_id,jdbcType=VARCHAR,mode=IN},
+				  #{o_Return_Int,jdbcType=INTEGER,mode=OUT},
+				  #{o_Return_String,jdbcType=VARCHAR,mode=OUT}
+			  )
+    	}
+	</select>
+</mapper>

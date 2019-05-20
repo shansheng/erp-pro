@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.sys.sysqueclass.mapper.SysQueClassMapper">
+    
+	<sql id="sysQueClassColumns">
+		a.id AS "id",
+		a.classify AS "classify",
+		a.subclassification AS "subclassification",
+		a.subclassification_name AS "subclassificationName"
+	</sql>
+	
+	<sql id="sysQueClassJoins">
+		
+	</sql>
+	
+    
+	<select id="get" resultType="SysQueClass" >
+		SELECT 
+			<include refid="sysQueClassColumns"/>
+		FROM sys_que_class a
+		<include refid="sysQueClassJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="SysQueClass" >
+		SELECT 
+			<include refid="sysQueClassColumns"/>
+		FROM sys_que_class a
+		<include refid="sysQueClassJoins"/>
+		<where>
+			
+			${dataScope}
+			<if test="classify != null and classify != ''">
+				AND a.classify = #{classify}
+			</if>
+			<if test="subclassificationName != null and subclassificationName != ''">
+				AND a.subclassification_name like
+				    <if test="dbName == 'oracle'">'%'|| #{subclassificationName}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+ #{subclassificationName}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{subclassificationName},'%')</if>
+					
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="SysQueClass" >
+		SELECT 
+			<include refid="sysQueClassColumns"/>
+		FROM sys_que_class a
+		<include refid="sysQueClassJoins"/>
+		<where>
+			
+			${dataScope}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO sys_que_class(
+			id,
+			classify,
+			subclassification,
+			subclassification_name
+		) VALUES (
+			#{id},
+			#{classify},
+			#{subclassification},
+			#{subclassificationName}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE sys_que_class SET 	
+			classify = #{classify},
+			subclassification = #{subclassification},
+			subclassification_name = #{subclassificationName}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM sys_que_class
+		WHERE id = #{id}
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE sys_que_class SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="SysQueClass" statementType="STATEMENT">
+		select * FROM sys_que_class  where ${propertyName} = '${value}'
+	</select>
+	
+</mapper>

@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.mds.mdsprojectpcmplan.mapper.MdsProjectpcmplanMapper">
+    
+	<sql id="mdsProjectpcmplanColumns">
+		a.sysMarketListId AS "sysMarketListId",
+		a.contractNo AS "contractNo",
+		a.mdsItemCode AS "mdsItemCode",
+		a.mdsItemName AS "mdsItemName",
+		a.amount AS "amount",
+		a.deliveryDate AS "deliveryDate",
+		a.principalName AS "principalName",
+		a.purchaseStartDate AS "purchaseStartDate",
+		a.purchaseEndDate AS "purchaseEndDate",
+		a.contractClass AS "contractClass",
+		a.assign_date
+	</sql>
+	
+	<sql id="mdsProjectpcmplanJoins">
+	
+	</sql>
+	<select id="get" resultType="MdsProjectpcmplan">
+		SELECT
+			a.CONTRACT_CLASS as "contractClass",
+			b.ID as "sysMarketListId"
+		FROM
+			SYS_MARKET a
+			left join SYS_MARKET_LIST  b on b.SYS_MARKET_ID = a.ID
+		where
+			b.ID = #{id}
+	</select>
+	
+    
+	<select id="getQuota" resultType="MdsProjectpcmplan" >
+		SELECT 
+			<include refid="mdsProjectpcmplanColumns"/>
+		FROM mds_quota_project_v a
+		<include refid="mdsProjectpcmplanJoins"/>
+		WHERE a.sysMarketListId = #{sysMarketListId}
+	</select>
+	
+	<select id="getTemporary" resultType="MdsProjectpcmplan" >
+		SELECT 
+			<include refid="mdsProjectpcmplanColumns"/>
+		FROM MDS_MARKET_TEMPORARY_V a
+		<include refid="mdsProjectpcmplanJoins"/>
+		WHERE a.sysMarketListId = #{sysMarketListId}
+	</select>
+
+	
+	<select id="findList" resultType="MdsProjectpcmplan" >
+		SELECT 
+			<include refid="mdsProjectpcmplanColumns"/>
+		FROM mds_quota_project_v a
+		<include refid="mdsProjectpcmplanJoins"/>
+		<where>
+			${dataScope}
+			<if test="contractNo != null and contractNo != ''">
+				AND a.contractNo LIKE 
+					<if test="dbName == 'oracle'">'%'||#{contractNo}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{contractNo}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{contractNo},'%')</if>
+		</if>
+		<if test="mdsItemCode != null and mdsItemCode != ''">
+				AND a.mdsItemCode LIKE 
+					<if test="dbName == 'oracle'">'%'||#{mdsItemCode}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{mdsItemCode}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{mdsItemCode},'%')</if>
+		</if>
+		<if test="mdsItemName != null and mdsItemName != ''">
+				AND a.mdsItemName LIKE 
+					<if test="dbName == 'oracle'">'%'||#{mdsItemName}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{mdsItemName}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{mdsItemName},'%')</if>
+		</if>
+		<if test="principalName != null and principalName != ''">
+				AND a.principalName LIKE 
+					<if test="dbName == 'oracle'">'%'||#{principalName}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{principalName}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{principalName},'%')</if>
+		</if>
+		<if test="purchaseStartDate != null and purchaseStartDate != '' and purchaseStartDateEnd != null and purchaseStartDateEnd != ''">
+				AND a.purchaseStartDate between #{purchaseStartDate} and #{purchaseStartDateEnd}+1-1/24/60/60
+		</if>
+		<if test="purchaseEndDateStart != null and purchaseEndDateStart != '' and purchaseEndDate != null and purchaseEndDate != ''">
+				AND a.purchaseEndDate between #{purchaseEndDateStart} and #{purchaseEndDate}+1-1/24/60/60
+		</if>
+		</where>
+		
+		
+		union all
+		
+		SELECT 
+			<include refid="mdsProjectpcmplanColumns"/>
+		FROM MDS_MARKET_TEMPORARY_V a
+		<include refid="mdsProjectpcmplanJoins"/>
+		<where>
+			${dataScope}
+			<if test="contractNo != null and contractNo != ''">
+				AND a.contractNo LIKE 
+					<if test="dbName == 'oracle'">'%'||#{contractNo}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{contractNo}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{contractNo},'%')</if>
+		</if>
+		<if test="mdsItemCode != null and mdsItemCode != ''">
+				AND a.mdsItemCode LIKE 
+					<if test="dbName == 'oracle'">'%'||#{mdsItemCode}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{mdsItemCode}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{mdsItemCode},'%')</if>
+		</if>
+		<if test="mdsItemName != null and mdsItemName != ''">
+				AND a.mdsItemName LIKE 
+					<if test="dbName == 'oracle'">'%'||#{mdsItemName}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{mdsItemName}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{mdsItemName},'%')</if>
+		</if>
+		<if test="principalName != null and principalName != ''">
+				AND a.principalName LIKE 
+					<if test="dbName == 'oracle'">'%'||#{principalName}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{principalName}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{principalName},'%')</if>
+		</if>
+		<if test="purchaseStartDate != null and purchaseStartDate != '' and purchaseStartDateEnd != null and purchaseStartDateEnd != ''">
+				AND a.purchaseStartDate between #{purchaseStartDate} and #{purchaseStartDateEnd}+1-1/24/60/60
+		</if>
+		<if test="purchaseEndDateStart != null and purchaseEndDateStart != '' and purchaseEndDate != null and purchaseEndDate != ''">
+				AND a.purchaseEndDate between #{purchaseEndDateStart} and #{purchaseEndDate}+1-1/24/60/60
+		</if>
+		</where>
+		
+		<!-- ) AS mds_purchase_project -->
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy},assign_date DESC
+			</when>
+			<otherwise>
+				ORDER BY assign_date DESC
+			</otherwise>
+		</choose>
+		
+	</select>
+	
+	<update id="update">
+		UPDATE sys_market_list SET 	
+			ADD_PROCUREMENT = #{state}
+		WHERE id = #{sysMarketListId}
+	</update>
+	
+	<!-- 查询物料库存数 -->
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="MdsProjectpcmplan" statementType="STATEMENT">
+		select * FROM mds_quota_project_v  where ${propertyName} = '${value}'
+	</select>
+	
+</mapper>

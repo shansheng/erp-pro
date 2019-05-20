@@ -1,0 +1,379 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.mds.mdsprocurementplan.mapper.MdsProcurementPlanMapper">
+    
+    <!-- 从视图中获取的字段 -->
+	<sql id="mdsProcurementPlanColumns">
+		a.id AS "id",
+		a.mds_item_id AS "mdsItemId",
+		a.classify AS "classify",
+		a.item_code AS "itemCode",
+		a.item_name AS "itemName",
+		a.normal_field AS "normalField",
+		a.modelnm AS "modelnm",
+		a.specs AS "specs",
+		a.purchase_amount AS "purchaseAmount",
+		a.required_date AS "requiredDate",
+		a.state AS "state",
+		a.procurement_way AS "procurementWay",
+		a.from_id AS "fromId",
+		a.source_type AS "sourceType",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.particulars AS "particulars",
+		a.buyer AS "buyer.id",
+		a.name AS "buyer.name"
+	</sql>
+	<!-- 从表中获取 -->
+	<sql id="mdsProcurementPlanColumns2">
+		a.id AS "id",
+		a.mds_item_id AS "mdsItemId",
+		a.classify AS "classify",
+		a.item_code AS "itemCode",
+		a.item_name AS "itemName",
+		a.normal_field AS "normalField",
+		a.modelnm AS "modelnm",
+		a.specs AS "specs",
+		a.purchase_amount AS "purchaseAmount",
+		a.required_date AS "requiredDate",
+		a.state AS "state",
+		a.procurement_way AS "procurementWay",
+		a.from_id AS "fromId",
+		a.source_type AS "sourceType",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.supplier_name AS "supplierName",
+		a.buyer AS "buyer.id",
+		b.name AS "buyer.name"
+	</sql>
+	<!-- 统计查询 -->
+	<sql id="mdsProcurementPlanColumns3">
+		a.mds_item_id as "mdsItemId",
+		a.item_code as "itemCode",
+		a.item_name as "itemName",
+		a.normal_field as "normalField",
+		a.modelnm,
+		a.specs,
+		purchaseAmount,
+		a.required_date as "requiredDate",
+		a.state
+	</sql>
+	
+	
+	<sql id="mdsProcurementPlanJoins">
+		left join sys_user b on a.buyer=b.id
+	</sql>
+	<select id="getByMarketId" resultType="MdsProcurementPlan" >
+		SELECT 
+			<include refid="mdsProcurementPlanColumns2"/>
+		FROM mds_procurement_plan a
+		<include refid="mdsProcurementPlanJoins"/>
+		WHERE a.from_id = #{sysMarketId} and a.source_type='项目录入'
+	</select>
+    
+	<select id="get" resultType="MdsProcurementPlan" >
+		SELECT 
+			<include refid="mdsProcurementPlanColumns2"/>
+		FROM mds_procurement_plan a
+		<include refid="mdsProcurementPlanJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="MdsProcurementPlan" >
+		SELECT 
+			<include refid="mdsProcurementPlanColumns"/>
+		FROM MDS_PROCUREMENT_PLAN_V a
+		<include refid="mdsProcurementPlanJoins"/>
+		<where>
+			
+			${dataScope}
+			and a.del_flag = '0'
+			<if test="itemCode != null and itemCode != ''">
+				AND a.item_code LIKE 
+					<if test="dbName == 'oracle'">'%'||#{itemCode}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{itemCode}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{itemCode},'%')</if>
+			</if>
+			<if test="itemName != null and itemName != ''">
+				AND a.item_name LIKE 
+					<if test="dbName == 'oracle'">'%'||#{itemName}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{itemName}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{itemName},'%')</if>
+			</if>
+			<if test="beginRequiredDate != null and endRequiredDate != null and beginRequiredDate != '' and endRequiredDate != ''">
+				AND a.required_date BETWEEN #{beginRequiredDate} AND #{endRequiredDate}
+			</if>
+			<choose>
+			<when test="state != null and state != ''">
+				AND a.state = #{state}
+			</when>
+			<otherwise>
+				AND a.state in ('0','5','10')
+			</otherwise>
+			</choose>
+			<if test="procurementWay != null and procurementWay != ''"> 
+				AND a.procurement_way = #{procurementWay}
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy},a.update_date DESC
+			</when>
+			<!-- <when test="state != null and state != ''">
+			   ORDER BY a.state ASC
+			</when> -->
+			<otherwise>
+				ORDER BY a.create_date DESC,a.state ASC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="MdsProcurementPlan" >
+		SELECT 
+			<include refid="mdsProcurementPlanColumns"/>
+		FROM MDS_PROCUREMENT_PLAN_V a
+		<include refid="mdsProcurementPlanJoins"/>
+		<where>
+			${dataScope}
+			<if test="itemCode != null and itemCode != ''">
+				AND a.item_code LIKE 
+					<if test="dbName == 'oracle'">'%'||#{itemCode}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{itemCode}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{itemCode},'%')</if>
+			</if>
+			<if test="itemName != null and itemName != ''">
+				AND a.item_name LIKE 
+					<if test="dbName == 'oracle'">'%'||#{itemName}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{itemName}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{itemName},'%')</if>
+			</if>
+			<if test="beginRequiredDate != null and endRequiredDate != null and beginRequiredDate != '' and endRequiredDate != ''">
+				AND a.required_date BETWEEN #{beginRequiredDate} AND #{endRequiredDate}
+			</if>
+			<if test="state != null and state != ''">
+				AND a.state = #{state}
+			</if>
+			<if test="procurementWay != null and procurementWay != ''">
+				AND a.procurement_way = #{procurementWay}
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findCollect" resultType="MdsProcurementPlan" >
+		select
+			<include refid="mdsProcurementPlanColumns3"/>
+		FROM
+			(
+				SELECT 
+					A .mds_item_id,
+					A .item_code,
+					A .item_name,
+					A .normal_field,
+					A .modelnm,
+					A .specs,
+					SUM (A .purchase_amount)  as purchaseAmount,
+					A .required_date,
+					A .state
+				FROM (
+					Select 
+						A .mds_item_id ,
+						A .item_code,
+						A .item_name,
+						A .normal_field,
+						A .modelnm,
+						A .specs,
+						A .purchase_amount,
+						A .required_date,
+						A .state,
+						A .procurement_way
+					FROM MDS_PROCUREMENT_PLAN_V a
+					<where>
+						a.state in ('0','5')
+						AND A.DEL_FLAG = '0'
+						<if test="pcmItemCode != null and pcmItemCode != ''">
+							AND a.item_code LIKE 
+								<if test="dbName == 'oracle'">'%'||#{pcmItemCode}||'%'</if>
+								<if test="dbName == 'mssql'">'%'+#{pcmItemCode}+'%'</if>
+								<if test="dbName == 'mysql'">concat('%',#{pcmItemCode},'%')</if>
+						</if>
+						<if test="pcmItemName != null and pcmItemName != ''">
+							AND a.item_name LIKE 
+								<if test="dbName == 'oracle'">'%'||#{pcmItemName}||'%'</if>
+								<if test="dbName == 'mssql'">'%'+#{pcmItemName}+'%'</if>
+								<if test="dbName == 'mysql'">concat('%',#{pcmItemName},'%')</if>
+						</if>
+						<if test="pcmBeginRequiredDate != null and pcmEndRequiredDate != null and pcmBeginRequiredDate != '' and pcmEndRequiredDate != ''">
+							AND a.required_date BETWEEN #{pcmBeginRequiredDate} AND #{pcmEndRequiredDate}
+						</if>
+						<if test="pcmState != null and pcmState != ''">
+							AND a.state = #{pcmState}
+						</if>
+						<if test="pcmProcurementWay != null and pcmProcurementWay != ''">
+						AND a.procurement_way = #{pcmProcurementWay}
+					</if>
+					</where>
+				) a
+				GROUP BY
+					A .mds_item_id,
+					A .item_code,
+					A .item_name,
+					A .normal_field,
+					A .modelnm,
+					A .specs,
+					A .required_date,
+					A .state
+			) a
+			<where>
+			<if test="itemCode != null and itemCode != ''">
+				AND a.item_code LIKE 
+					<if test="dbName == 'oracle'">'%'||#{itemCode}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{itemCode}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{itemCode},'%')</if>
+			</if>
+			<if test="itemName != null and itemName != ''">
+				AND a.item_name LIKE 
+					<if test="dbName == 'oracle'">'%'||#{itemName}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{itemName}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{itemName},'%')</if>
+			</if>
+			<if test="beginRequiredDate != null and endRequiredDate != null and beginRequiredDate != '' and endRequiredDate != ''">
+				AND a.required_date BETWEEN #{beginRequiredDate} AND #{endRequiredDate}
+			</if>
+			<if test="state != null and state != ''">
+				AND a.state = #{state}
+			</if>
+			</where>
+			<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy},a.item_code DESC,a.required_date DESC
+			</when>
+			<otherwise>
+				ORDER BY a.item_code DESC,a.required_date DESC
+			</otherwise>
+		</choose>
+		
+	</select>
+	
+	<!-- 批量插入项目采购中的数据 -->
+	<insert id="insertProjectList" parameterType="java.util.List"> 
+	  INSERT INTO mds_procurement_plan(
+	      	id,
+			mds_item_id,
+			classify,
+			item_code,
+			item_name,
+			normal_field,
+			modelnm,
+			specs,
+			purchase_amount,
+			required_date,
+			state,
+			procurement_way,
+			from_id,
+			source_type,
+			column2,
+			column3,
+			column4,
+			column5,
+			create_by,
+			create_date,
+			update_by,
+			update_date
+			)
+			<foreach collection="list" item="MdsProcurementPlan" index="index"  separator="UNION ALL" >
+			  (
+			  SELECT 
+			  #{MdsProcurementPlan.id},
+			  #{MdsProcurementPlan.mdsItemId},
+			  #{MdsProcurementPlan.classify},
+			  #{MdsProcurementPlan.itemCode},
+			  #{MdsProcurementPlan.itemName},
+			  #{MdsProcurementPlan.normalField},
+			  #{MdsProcurementPlan.modelnm},
+			  #{MdsProcurementPlan.specs},
+			  #{MdsProcurementPlan.purchaseAmount},
+			  #{MdsProcurementPlan.requiredDate},
+			  #{MdsProcurementPlan.state},
+			  #{MdsProcurementPlan.procurementWay},
+			  #{MdsProcurementPlan.fromId},
+			  #{MdsProcurementPlan.sourceType},
+			  #{MdsProcurementPlan.column2},
+			  #{MdsProcurementPlan.column3},
+			  #{MdsProcurementPlan.column4},
+			  #{MdsProcurementPlan.column5},
+			  #{MdsProcurementPlan.createBy.id},
+			  #{MdsProcurementPlan.createDate},
+			  #{MdsProcurementPlan.updateBy.id},
+			  #{MdsProcurementPlan.updateDate}
+			  FROM dual
+			  )
+			</foreach>
+	</insert>
+	
+	<!-- 修改采购计划状态以及数量和时间 -->
+	<update id="updateState">
+		UPDATE mds_procurement_plan SET 
+			purchase_amount = #{purchaseAmount},
+			required_date = #{requiredDate},
+			state = #{state},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			finish_state = #{finishState}
+		WHERE id = #{id}
+	</update>
+	
+	<!-- 修改数量和时间 -->
+	<update id="update">
+		UPDATE mds_procurement_plan SET 
+			purchase_amount = #{purchaseAmount},
+			required_date = #{requiredDate},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate}
+		WHERE id = #{id}
+	</update>
+	
+	<!-- 修改采购人 -->
+	<update id="saveBuyer">
+		UPDATE mds_procurement_plan SET 
+			buyer = #{buyer.id},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM mds_procurement_plan
+		WHERE id = #{id}
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE mds_procurement_plan SET 
+			del_flag = #{delFlag}
+		WHERE id = #{id}
+	</update>
+	<update id="updateRequireDate">
+	    update mds_procurement_plan 
+	    set required_date = #{requiredDate}
+	    where id = #{id}
+	</update>
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="MdsProcurementPlan" statementType="STATEMENT">
+		select * FROM mds_procurement_plan  where ${propertyName} = '${value}'
+	</select>
+</mapper>

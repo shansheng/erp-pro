@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.mds.mdsoperationseq.mapper.MdsOperationSeqMapper">
+    
+	<sql id="mdsOperationSeqColumns">
+		a.id AS "id",
+		a.mds_route_id AS "mdsRouteId",
+		a.operation_seq_no AS "operationSeqNo",
+		a.operation_seq_desc AS "operationSeqDesc",
+		a.operation_seq_no_next AS "operationSeqNoNext",
+		a.plan_setup_time AS "planSetupTime",
+		a.inner_order AS "innerOrder",
+		a.mds_operation_type_id AS "mdsOperationTypeId",
+		a.sys_office_id AS "sysOfficeId",
+		a.plan_run_time AS "planRunTime",
+		a.plan_wait_time AS "planWaitTime",
+		a.plan_move_time AS "planMoveTime",
+		a.plan_buffer_time AS "planBufferTime",
+		a.cost_ration_time AS "costRationTime",
+		a.mds_workcenter_id AS "mdsWorkcenterId",
+		a.key_flag AS "keyFlag",
+		a.move_batch AS "moveBatch",
+		a.balance_batch AS "balanceBatch",
+		a.inventory_flag AS "inventoryFlag",
+		a.avarage_batch_flag AS "avarageBatchFlag",
+		a.subroute_flag AS "subrouteFlag",
+		a.jit_flag AS "jitFlag",
+		a.controlled_flag AS "controlledFlag",
+		a.step_flag AS "stepFlag",
+		a.filter_flag AS "filterFlag",
+		a.neck_flag AS "neckFlag",
+		a.collaborative_flag AS "collaborativeFlag",
+		a.first_item_check_flag AS "firstItemCheckFlag",
+		a.inspect_flag AS "inspectFlag",
+		a.nc_flag AS "ncFlag",
+		a.seq_type AS "seqType",
+		a.item_01 AS "item01",
+		a.item_02 AS "item02",
+		a.item_03 AS "item03",
+		a.item_04 AS "item04",
+		a.item_05 AS "item05",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag",
+		mr.route_no AS "mdsRouteNo",
+		mr.route_ed AS "mdsRouteEd",
+		mr.route_desc AS "mdsRouteDesc",
+		mw.workcenter_name as "mdsWorkcenterName",
+		mw.workcenter_code as "workCenterCode",
+		o.name AS "sysOfficeName"
+		
+	</sql>
+	
+	<sql id="mdsOperationSeqJoins">
+		LEFT JOIN mds_route mr ON a.mds_route_id = mr.id
+		LEFT JOIN mes_workshift mw ON a.mds_workcenter_id= mw.id
+		Left Join sys_office o On a.sys_office_id = o.id
+	</sql>
+		<!-- 刷新工序排序 -->
+	<select id="refrushSeqInnerOrder" resultType="java.util.Map" parameterType="java.util.Map" statementType="CALLABLE">  
+		{call ptplus.mds_operation_seq_refrush_order(
+				  #{i_Mds_Route_Id,jdbcType=VARCHAR,mode=IN},  
+				  #{o_Return_Int,jdbcType=INTEGER,mode=OUT},
+				  #{o_Return_String,jdbcType=VARCHAR,mode=OUT}
+			  )
+    	}
+	</select>
+		<!-- 工序上移 -->
+	<select id="doBeforeSeq" resultType="java.util.Map" parameterType="java.util.Map" statementType="CALLABLE">  
+		{call ptplus.mds_operation_seq_do_before(
+				  #{i_Mds_Operation_Seq_Id,jdbcType=VARCHAR,mode=IN},  
+				  #{i_Sys_User_Id,jdbcType=VARCHAR,mode=IN},  
+				  #{o_Return_Int,jdbcType=INTEGER,mode=OUT},
+				  #{o_Return_String,jdbcType=VARCHAR,mode=OUT}
+			  )
+    	}
+	</select>
+	
+	<!-- 工序下移 -->
+	<select id="doAfterSeq" resultType="java.util.Map" parameterType="java.util.Map" statementType="CALLABLE">  
+		{call ptplus.mds_operation_seq_do_after(
+				  #{i_Mds_Operation_Seq_Id,jdbcType=VARCHAR,mode=IN},
+				  #{i_Sys_User_Id,jdbcType=VARCHAR,mode=IN},
+				  #{o_Return_Int,jdbcType=INTEGER,mode=OUT},
+				  #{o_Return_String,jdbcType=VARCHAR,mode=OUT}
+			  )
+    	}
+	</select>
+	
+    
+	<select id="get" resultType="MdsOperationSeq" >
+		SELECT 
+			<include refid="mdsOperationSeqColumns"/>
+		FROM mds_operation_seq a
+		<include refid="mdsOperationSeqJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="MdsOperationSeq" >
+		SELECT 
+			<include refid="mdsOperationSeqColumns"/>
+		FROM mds_operation_seq a
+		<include refid="mdsOperationSeqJoins"/>
+		<where>
+			mr.del_flag = #{DEL_FLAG_NORMAL}
+			${dataScope}
+			<if test="mdsRouteId != null and mdsRouteId != ''">
+				AND a.mds_route_id=#{mdsRouteId}
+			</if>
+			<if test="operationSeqNo != null and operationSeqNo != ''">
+				AND a.operation_seq_no = #{operationSeqNo}
+			</if>
+			<if test="operationSeqDesc != null and operationSeqDesc != ''">
+				AND a.operation_seq_desc = #{operationSeqDesc}
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.inner_order 
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="MdsOperationSeq" >
+		SELECT 
+			<include refid="mdsOperationSeqColumns"/>
+		FROM mds_operation_seq a
+		<include refid="mdsOperationSeqJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL} and mds_route_id=#{mdsRouteId}
+			${dataScope}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO mds_operation_seq(
+			id,
+			mds_route_id,
+			operation_seq_no,
+			operation_seq_desc,
+			operation_seq_no_next,
+			plan_setup_time,
+			inner_order,
+			mds_operation_type_id,
+			sys_office_id,
+			plan_run_time,
+			plan_wait_time,
+			plan_move_time,
+			plan_buffer_time,
+			cost_ration_time,
+			mds_workcenter_id,
+			key_flag,
+			move_batch,
+			balance_batch,
+			inventory_flag,
+			avarage_batch_flag,
+			subroute_flag,
+			jit_flag,
+			controlled_flag,
+			step_flag,
+			filter_flag,
+			neck_flag,
+			collaborative_flag,
+			first_item_check_flag,
+			inspect_flag,
+			nc_flag,
+			seq_type,
+			item_01,
+			item_02,
+			item_03,
+			item_04,
+			item_05,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks,
+			del_flag
+		) VALUES (
+			#{id},
+			#{mdsRouteId},
+			#{operationSeqNo},
+			#{operationSeqDesc},
+			#{operationSeqNoNext},
+			#{planSetupTime},
+			#{innerOrder},
+			#{mdsOperationTypeId},
+			#{sysOfficeId},
+			#{planRunTime},
+			#{planWaitTime},
+			#{planMoveTime},
+			#{planBufferTime},
+			#{costRationTime},
+			#{mdsWorkcenterId},
+			#{keyFlag},
+			#{moveBatch},
+			#{balanceBatch},
+			#{inventoryFlag},
+			#{avarageBatchFlag},
+			#{subrouteFlag},
+			#{jitFlag},
+			#{controlledFlag},
+			#{stepFlag},
+			#{filterFlag},
+			#{neckFlag},
+			#{collaborativeFlag},
+			#{firstItemCheckFlag},
+			#{inspectFlag},
+			#{ncFlag},
+			#{seqType},
+			#{item01},
+			#{item02},
+			#{item03},
+			#{item04},
+			#{item05},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remarks},
+			#{delFlag}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE mds_operation_seq SET 	
+			mds_route_id = #{mdsRouteId},
+			operation_seq_no = #{operationSeqNo},
+			operation_seq_desc = #{operationSeqDesc},
+			operation_seq_no_next = #{operationSeqNoNext},
+			plan_setup_time = #{planSetupTime},
+			inner_order = #{innerOrder},
+			mds_operation_type_id = #{mdsOperationTypeId},
+			sys_office_id = #{sysOfficeId},
+			plan_run_time = #{planRunTime},
+			plan_wait_time = #{planWaitTime},
+			plan_move_time = #{planMoveTime},
+			plan_buffer_time = #{planBufferTime},
+			cost_ration_time = #{costRationTime},
+			mds_workcenter_id = #{mdsWorkcenterId},
+			key_flag = #{keyFlag},
+			move_batch = #{moveBatch},
+			balance_batch = #{balanceBatch},
+			inventory_flag = #{inventoryFlag},
+			avarage_batch_flag = #{avarageBatchFlag},
+			subroute_flag = #{subrouteFlag},
+			jit_flag = #{jitFlag},
+			controlled_flag = #{controlledFlag},
+			step_flag = #{stepFlag},
+			filter_flag = #{filterFlag},
+			neck_flag = #{neckFlag},
+			collaborative_flag = #{collaborativeFlag},
+			first_item_check_flag = #{firstItemCheckFlag},
+			inspect_flag = #{inspectFlag},
+			nc_flag = #{ncFlag},
+			seq_type = #{seqType},
+			item_01 = #{item01},
+			item_02 = #{item02},
+			item_03 = #{item03},
+			item_04 = #{item04},
+			item_05 = #{item05},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remarks = #{remarks}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM mds_operation_seq
+		WHERE id = #{id}
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE mds_operation_seq SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="MdsOperationSeq" statementType="STATEMENT">
+		select * FROM mds_operation_seq  where ${propertyName} = '${value}'
+	</select>
+	
+</mapper>

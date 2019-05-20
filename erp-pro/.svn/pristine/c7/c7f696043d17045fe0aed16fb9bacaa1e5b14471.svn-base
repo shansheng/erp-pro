@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.mat.matdeputy.mapper.MatDeputyMapper">
+    
+	<sql id="matRequisitionColumns">
+		a.id AS "id",
+		a.departmentassessing AS "departmentassessing",
+		a.department_assessing_date AS "departmentAssessingDate",
+		a.deputy_assessing AS "deputyAssessing",
+		a.deputy_assessing_date AS "deputyAssessingDate",
+		a.state AS "state",
+		a.column1 AS "column1",
+		a.column2 AS "column2",
+		a.column3 AS "column3",
+		a.column4 AS "column4",
+		a.column5 AS "column5",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag",
+		a.code AS "code",
+		su.name as "userName",
+		b.name AS "departmentAssessingName"
+		
+	</sql>
+	
+	<sql id="matRequisitionJoins">
+		left join sys_user su on su.id=a.create_by
+		LEFT JOIN SYS_USER b ON b.id=a.departmentassessing
+	</sql>
+	
+    
+	<select id="get" resultType="MatRequisition" >
+		SELECT 
+		<include refid="matRequisitionColumns"/>
+				
+		FROM mat_requisition a
+		left join sys_user su on su.id=a.create_by
+		LEFT JOIN SYS_USER b ON b.id=a.departmentassessing
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="MatRequisition" >
+		SELECT 
+			<include refid="matRequisitionColumns"/>
+		FROM mat_requisition a
+			left join sys_user su on su.id=a.create_by
+		LEFT JOIN SYS_USER b ON b.id=a.departmentassessing
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			AND a.state='30'
+			${dataScope}
+			<if test="code != null and code != ''">
+				AND a.code LIKE 
+					<if test="dbName == 'oracle'">'%'||#{code}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{code}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{code},'%')</if>
+			</if>
+			
+			<if test="state != null and state != ''">
+				AND a.state = #{state}
+			</if>
+			
+			<if test="createDate != null and createDate != '' and endCreateDate != null and endCreateDate != ''">
+				AND a.create_date between #{createDate} and #{endCreateDate}+1-1/24/60/60
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="MatRequisition" >
+		SELECT 
+			<include refid="matRequisitionColumns"/>
+		FROM mat_requisition a
+		<include refid="matRequisitionJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			${dataScope}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO mat_requisition(
+			id,
+			code,
+			departmentassessing,
+			department_assessing_date,
+			deputy_assessing,
+			deputy_assessing_date,
+			state,
+			column1,
+			column2,
+			column3,
+			column4,
+			column5,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks,
+			del_flag
+		) VALUES (
+			#{id},
+			#{code},
+			#{departmentassessing},
+			#{departmentAssessingDate},
+			#{deputyAssessing},
+			#{deputyAssessingDate},
+			#{state},
+			#{column1},
+			#{column2},
+			#{column3},
+			#{column4},
+			#{column5},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remarks},
+			#{delFlag}
+			
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE mat_requisition SET 	
+			departmentassessing = #{departmentassessing},
+			department_assessing_date = #{departmentAssessingDate},
+			deputy_assessing = #{deputyAssessing},
+			deputy_assessing_date = #{deputyAssessingDate},
+			state = #{state},
+			column1 = #{column1},
+			column2 = #{column2},
+			column3 = #{column3},
+			column4 = #{column4},
+			column5 = #{column5},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remarks = #{remarks},
+			code = #{code}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM mat_requisition
+		WHERE id = #{id}
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE mat_requisition SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	<update id="rejectState">
+	   update mat_requisition 
+	   SET state =#{state},
+	     deputy_assessing =#{deputyAssessing},
+	     DEPUTY_ASSESSING_DATE=#{deputyAssessingDate}
+	   where id=#{id}
+	</update>
+	<update id="argeeState">
+	   update mat_requisition
+	   SET STATE=#{state},
+	   deputy_assessing =#{deputyAssessing},
+	     DEPUTY_ASSESSING_DATE=#{deputyAssessingDate}
+	   WHERE ID=#{id}
+	</update>
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="MatRequisition" statementType="STATEMENT">
+		select * FROM mat_requisition  where ${propertyName} = '${value}'
+	</select>
+	
+</mapper>

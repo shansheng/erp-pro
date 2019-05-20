@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.wms.wmsinvinbill.mapper.WmsInvInBillListMapper">
+    
+	<sql id="wmsInvInBillListColumns">
+		a.id AS "id",
+		a.wms_inv_in_bill_id AS "wmsInvInBill.id",
+		a.wms_locator_id AS "wmsLocatorId",
+		locator.locator_code AS "wmsLocatorCode",
+		a.mds_item_id AS "mdsItemId",
+		item.item_code As "itemCode",
+		item.item_name As "itemName",
+		item.marque As "itemMarque",
+		item.specs As "itemSpecs",
+		a.quality_no AS "qualityNo",
+		a.supply_regular_no AS "supplyRegularNo",
+		a.apply_qty AS "applyQty",
+		a.in_qty AS "inQty",
+		a.in_sys_user_id AS "inSysUserId",
+		user.name AS "inSysUserName",
+		a.in_date AS "inDate",
+		a.refuse_reason AS "refuseReason",
+		a.note AS "note",
+		a.status AS "status",
+		get_dict_label("wms_inv_in_bill_status", a.status) AS "statusLabel",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag"
+	</sql>
+	
+	<sql id="wmsInvInBillListJoins">
+			LEFT JOIN wms_inv_in_bill b ON b.id = a.wms_inv_in_bill_id
+			LEFT JOIN wms_locator locator on locator.id = a.wms_locator_id
+			LEFT JOIN mds_item item on item.id = a.mds_item_id
+			LEFT JOIN sys_user user on user.id = a.in_sys_user_id
+	</sql>
+	
+    
+	<select id="get" resultType="WmsInvInBillList" >
+		SELECT 
+			<include refid="wmsInvInBillListColumns"/>
+		FROM wms_inv_in_bill_list a
+		<include refid="wmsInvInBillListJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="WmsInvInBillList" >
+		SELECT 
+			<include refid="wmsInvInBillListColumns"/>
+		FROM wms_inv_in_bill_list a
+		<include refid="wmsInvInBillListJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			${dataScope}
+			<if test="wmsInvInBill.id != null and wmsInvInBill.id != ''">
+				AND a.wms_inv_in_bill_id = #{wmsInvInBill.id}
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.create_date ASC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="WmsInvInBillList" >
+		SELECT 
+			<include refid="wmsInvInBillListColumns"/>
+		FROM wms_inv_in_bill_list a
+		<include refid="wmsInvInBillListJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			${dataScope}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.create_date ASC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO wms_inv_in_bill_list(
+			id,
+			wms_inv_in_bill_id,
+			wms_locator_id,
+			mds_item_id,
+			quality_no,
+			supply_regular_no,
+			apply_qty,
+			in_qty,
+			in_sys_user_id,
+			in_date,
+			refuse_reason,
+			note,
+			status,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks,
+			del_flag
+		) VALUES (
+			#{id},
+			#{wmsInvInBill.id},
+			#{wmsLocatorId},
+			#{mdsItemId},
+			#{qualityNo},
+			#{supplyRegularNo},
+			#{applyQty},
+			#{inQty},
+			#{inSysUserId},
+			#{inDate},
+			#{refuseReason},
+			#{note},
+			#{status},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remarks},
+			#{delFlag}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE wms_inv_in_bill_list SET 	
+			wms_inv_in_bill_id = #{wmsInvInBill.id},
+			wms_locator_id = #{wmsLocatorId},
+			mds_item_id = #{mdsItemId},
+			quality_no = #{qualityNo},
+			supply_regular_no = #{supplyRegularNo},
+			apply_qty = #{applyQty},
+			in_qty = #{inQty},
+			in_sys_user_id = #{inSysUserId},
+			in_date = #{inDate},
+			refuse_reason = #{refuseReason},
+			note = #{note},
+			status = #{status},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remarks = #{remarks}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM wms_inv_in_bill_list
+		<choose>
+			<when test="id !=null and id != ''">
+				WHERE id = #{id}
+			</when>
+			<otherwise>
+				WHERE wms_inv_in_bill_id = #{wmsInvInBill.id}
+			</otherwise>
+		</choose>
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE wms_inv_in_bill_list SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		<choose>
+			<when test="id !=null and id != ''">
+				WHERE id = #{id}
+			</when>
+			<otherwise>
+				WHERE wms_inv_in_bill_id = #{wmsInvInBill.id}
+			</otherwise>
+		</choose>
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="WmsInvInBillList" statementType="STATEMENT">
+		select * FROM wms_inv_in_bill_list  where ${propertyName} = '${value}'
+	</select>
+	
+	<!-- 根据实体名称和字段名称和字段值获取记录 -->
+	<select id="findByProperty" resultType="WmsInvInBillList" >
+		SELECT 
+			<include refid="wmsInvInBillListColumns"/>
+		FROM wms_inv_in_bill_list a
+		<include refid="wmsInvInBillListJoins"/>
+		<where>
+			a.del_flag = '0' AND 
+			a.${propertyName} = '${value}'
+		</where>		
+	</select>
+	
+	<!-- 入库操作 
+		1.更改 入库单明细 状态为已入库
+		2.库存增加
+		3.增加流水
+	-->
+	<update id="inBill">
+		UPDATE wms_inv_in_bill_list SET
+			in_qty = apply_qty,
+			status = '20',
+			update_by = #{updateBy.id},
+			update_date = #{updateDate}
+		WHERE id = #{id};
+		
+		UPDATE wms_item_inventory t
+  		   SET t.current_sumup_in_qty = t.current_sumup_in_qty + #{applyQty},
+  		   	 t.current_onhand_qty = t.current_onhand_qty + #{applyQty},
+  		   	 t.update_by = #{updateBy.id},
+  		   	 t.update_date = #{updateDate}
+  		 WHERE t.wms_locator_id = #{wmsLocatorId}
+  	  		AND t.mds_item_id = #{mdsItemId};
+	</update>
+</mapper>

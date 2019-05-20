@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.mrp.mrpwofeeding.mapper.MrpWoVMapper">
+    
+		<sql id="mrpWoFeedingColumns">
+		a.id AS "id",
+		a.wo_no AS "woNo",
+		a.wo_date_str AS "woDateStr",
+		a.year_str AS "yearStr",
+		a.month_str AS "monthStr",
+		a.task_no AS "taskNo",
+		a.batch_no AS "batchNo",
+		a.pro_mds_item_id AS "proMdsItemId",
+		a.pro_mds_item_code AS "proMdsItemCode",
+		a.mds_item_id AS "mdsItemId",
+		a.mds_item_code AS "mdsItemCode",
+		a.mds_item_name AS "mdsItemName",
+		a.item_type_lable AS "itemTypeLable",
+		a.route_shop AS "routeShop",
+		a.req_qty AS "reqQty",
+		a.to_ewo_qty AS "toEwoQty",
+		a.tl_qty AS "tlQty",
+		a.plan_start_date AS "planStartDate",
+		a.plan_end_date AS "planEndDate",
+		a.main_office_id AS "mainOfficeId",
+		a.main_office_name AS "mainOfficeName",
+		a.wo_status AS "woStatus",
+		a.wo_status_lable AS "woStatusLable"
+	</sql>
+	
+	<sql id="mrpWoVJoins">
+		
+	</sql>
+	
+	<select id="get" resultType="MrpWoV" >
+		SELECT 
+			<include refid="mrpWoFeedingColumns"/>
+		FROM mrp_wo_v a
+		<include refid="mrpWoVJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	
+	
+	<select id="findList" resultType="MrpWoV" >
+		SELECT 
+			<include refid="mrpWoFeedingColumns"/>
+		FROM mrp_wo_v a
+		<include refid="mrpWoVJoins"/>
+		<where>
+			a.req_qty > a.to_ewo_qty and a.wo_status = '2'
+			<if test="taskNo != null and taskNo != ''">
+				AND a.task_no LIKE 
+					<if test="dbName == 'oracle'">'%'||#{taskNo}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{taskNo}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{taskNo},'%')</if>
+			</if>
+			<if test="batchNo != null and batchNo != ''">
+				AND a.batch_no LIKE 
+					<if test="dbName == 'oracle'">'%'||#{batchNo}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{batchNo}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{batchNo},'%')</if>
+			</if>
+			<if test="proMdsItemCode != null and proMdsItemCode != ''">
+				AND a.pro_mds_item_code LIKE 
+					<if test="dbName == 'oracle'">'%'||#{proMdsItemCode}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{proMdsItemCode}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{proMdsItemCode},'%')</if>
+			</if>
+			<if test="mdsItemCode != null and mdsItemCode != ''">
+				AND a.mds_item_code LIKE 
+					<if test="dbName == 'oracle'">'%'||#{mdsItemCode}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{mdsItemCode}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{mdsItemCode},'%')</if>
+			</if>
+			<if test="mdsItemName != null and mdsItemName != ''">
+				AND a.mds_item_name LIKE 
+					<if test="dbName == 'oracle'">'%'||#{mdsItemName}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{mdsItemName}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{mdsItemName},'%')</if>
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+			</otherwise>
+		</choose>
+	</select>
+    
+	
+	
+	<update id="update">
+		UPDATE mrp_wo_v SET 	
+			wo_no = #{woNo},
+			wo_date_str = #{woDateStr},
+			year_str = #{yearStr},
+			month_str = #{monthStr},
+			task_no = #{taskNo},
+			batch_no = #{batchNo},
+			pro_mds_item_id = #{proMdsItemId},
+			pro_mds_item_code = #{proMdsItemCode},
+			mds_item_id = #{mdsItemId},
+			mds_item_code = #{mdsItemCode},
+			mds_item_name = #{mdsItemName},
+			item_type_lable = #{itemTypeLable},
+			route_shop = #{routeShop},
+			req_qty = #{reqQty},
+			to_ewo_qty = #{toEwoQty},
+			tl_qty = #{tlQty},
+			plan_start_date = #{planStartDate},
+			plan_end_date = #{planEndDate},
+			main_office_id = #{mainOfficeId},
+			main_office_name = #{mainOfficeName},
+			wo_status = #{woStatus},
+			wo_status_lable = #{woStatusLable}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM mrp_wo_v
+		WHERE id = #{id}
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE mrp_wo_v SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="MrpWoV" statementType="STATEMENT">
+		select * FROM mrp_wo_v  where ${propertyName} = '${value}'
+	</select>
+	
+		<!-- 投料提交 -->
+	<select id="feedingSubmit" parameterType="java.util.Map" statementType="CALLABLE">  
+		{call ptplus.mes_ewo_insert_p(
+				  #{i_wo_id,jdbcType=VARCHAR,mode=IN},  
+				  #{i_qty,jdbcType=INTEGER,mode=IN},  
+				  #{i_user_id,jdbcType=VARCHAR,mode=IN},  
+				  #{o_return_int,jdbcType=INTEGER,mode=OUT},
+				  #{o_return_string,jdbcType=VARCHAR,mode=OUT}
+			  )
+    	}
+	</select>
+	
+	
+</mapper>

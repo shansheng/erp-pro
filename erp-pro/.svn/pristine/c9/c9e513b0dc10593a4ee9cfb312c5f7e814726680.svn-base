@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.mat.matbom.mapper.MatBomTableMapper">
+
+	<sql id="matBomTableColumns">
+	A .ID AS "id",
+	A .mat_bom_detail_id AS "matBomDetailId",
+	A .serial AS "serial",
+	A .mds_item_id AS "mdsItemId",
+	A .create_by AS "createBy.id",
+	A .create_date AS "createDate",
+	A .update_by AS "updateBy.id",
+	A .update_date AS "updateDate",
+	A .ned_num AS "nedNum",
+	E .ITEM_NAME AS "mdsItemName",
+	E .ITEM_CODE AS "mdsItemCode",
+	E .SPECS AS "mdsItemspecs",
+	E .MODEL_NUM AS "mdsItemmodelNum",
+    Q .ITEM_NAME AS "itemName",
+	Q .ITEM_CODE AS "itemCode",
+	Q .SPECS AS "itemspecs",
+	Q.MODEL_NUM AS "itemmodelNum"
+	</sql>
+	
+	<sql id="matBomTableJoins">
+			LEFT JOIN mat_bom_detail b ON b.id = a.mat_bom_detail_id
+            LEFT JOIN MDS_ITEM E ON E.ID = a.MDS_ITEM_ID
+            LEFT JOIN MDS_QUOTA_DETAIL Q ON Q.ID = A.MDS_ITEM_ID
+            
+	</sql>
+	
+    
+	<select id="get" resultType="MatBomTable" >
+		SELECT 
+			<include refid="matBomTableColumns"/>
+		FROM mat_bom_table a
+		<include refid="matBomTableJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="gets" resultType="MatBomTable" >
+		SELECT 
+			<include refid="matBomTableColumns"/>
+		FROM mat_bom_table a
+		<include refid="matBomTableJoins"/>
+		WHERE a.mat_bom_detail_id = #{matBomDetailId}
+	</select>
+	
+	<select id="findList" resultType="MatBomTable" >
+	
+			SELECT 
+			<include refid="matBomTableColumns"/>
+		FROM mat_bom_table a
+		<include refid="matBomTableJoins"/>
+		<where>
+			
+			${dataScope}
+			<if test="matBomDetailId != null and matBomDetailId != ''">
+				AND a.mat_bom_detail_id = #{matBomDetailId}
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.serial ASC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="MatBomTable" >
+		SELECT 
+			<include refid="matBomTableColumns"/>
+		FROM mat_bom_table a
+		<include refid="matBomTableJoins"/>
+		<where>
+			
+			${dataScope}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.create_date ASC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+	 <selectKey keyProperty="id" resultType="String" order="BEFORE">
+             select sys_guid() from dual
+        </selectKey>
+		INSERT INTO mat_bom_table(
+			id,
+			mat_bom_detail_id,
+			serial,
+			mds_item_id,
+			ned_num,
+			create_by,
+			create_date,
+			update_by,
+			update_date
+		) VALUES (
+			#{id},
+			#{matBomDetailId},
+			#{serial},
+			#{mdsItemId},
+			#{nedNum},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE mat_bom_table SET 	
+			mat_bom_detail_id = #{matBomDetailId},
+			serial = #{serial},
+			mds_item_id = #{mdsItemId},
+			ned_num =#{nedNum},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM mat_bom_table
+		<choose>
+			<when test="id !=null and id != ''">
+				WHERE id = #{id}
+			</when>
+			<otherwise>
+				WHERE mat_bom_detail_id = #{matBomDetailId}
+			</otherwise>
+		</choose>
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE mat_bom_table SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		<choose>
+			<when test="id !=null and id != ''">
+				WHERE id = #{id}
+			</when>
+			<otherwise>
+				WHERE mat_bom_detail_id = #{matBomDetailId}
+			</otherwise>
+		</choose>
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="MatBomTable" statementType="STATEMENT">
+		select * FROM mat_bom_table  where ${propertyName} = '${value}'
+	</select>
+	
+</mapper>

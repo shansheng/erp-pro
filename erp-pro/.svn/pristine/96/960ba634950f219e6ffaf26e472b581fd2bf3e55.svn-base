@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.mds.mdsprocurementplanfinish.mapper.MdsPcmPlanFinishListMapper">
+    
+    <!-- 从视图中获取的字段 -->
+	<sql id="mdspcmplanfinishlist">
+		a.id AS "id",
+		a.MDS_PROCURMENT_PLAN_ID AS "mdsProcurmentPlanId",
+		a.ARRIVAL_NUM AS "arrivalNum",
+		a.QUALIFIED AS "qualified",
+		a.DISQUALIFICATION AS "disqualification",
+		a.IN_STORAGE AS "inStorage",
+		a.IN_STORAGE_BY AS "inStorageBy.id",
+		a.In_STORAGE_NAME AS "inStorageBy.name",
+		a.IN_STORAGE_DATE AS "inStorageDate",
+		a.create_by AS "createBy.id",
+		a.CREATE_NAME AS "createBy.name",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.UPDATE_NAME AS "updateBy.name",
+		a.update_date AS "updateDate",
+		b.label AS "checkoutState"
+	</sql>
+    
+	<select id="get" resultType="MdsPcmPlanFinishList" >
+		SELECT 
+			<include refid="mdspcmplanfinishlist"/>
+		FROM MDS_ARRIVAL_CHECKOUT_V a
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="MdsPcmPlanFinishList" >
+		SELECT 
+			<include refid="mdspcmplanfinishlist"/>
+		FROM MDS_ARRIVAL_CHECKOUT_V a
+		left join (select * from SYS_DICT_VALUE where DIct_TYPE_Id = 'fb49eca6373a4f2a9eaeb035a31b9ad0') b on a.state=b.value
+		<where>
+			${dataScope}
+			<if test="mdsProcurmentPlanId != null and mdsProcurmentPlanId != ''">
+				AND a.MDS_PROCURMENT_PLAN_ID = #{mdsProcurmentPlanId}
+			</if>
+		</where>
+		ORDER BY a.update_date DESC
+	</select>
+	
+	<select id="findAllList" resultType="MdsPcmPlanFinishList" >
+		SELECT 
+			<include refid="mdspcmplanfinishlist"/>
+		FROM MDS_PROCUREMENT_PLAN_V a
+		<where>
+			${dataScope}
+			<if test="itemCode != null and itemCode != ''">
+				AND a.item_code LIKE 
+					<if test="dbName == 'oracle'">'%'||#{itemCode}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{itemCode}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{itemCode},'%')</if>
+			</if>
+			<if test="itemName != null and itemName != ''">
+				AND a.item_name LIKE 
+					<if test="dbName == 'oracle'">'%'||#{itemName}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{itemName}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{itemName},'%')</if>
+			</if>
+			<if test="beginRequiredDate != null and endRequiredDate != null and beginRequiredDate != '' and endRequiredDate != ''">
+				AND a.required_date BETWEEN #{beginRequiredDate} AND #{endRequiredDate}
+			</if>
+			<if test="state != null and state != ''">
+				AND a.state = #{state}
+			</if>
+			<if test="procurementWay != null and procurementWay != ''">
+				AND a.procurement_way = #{procurementWay}
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="MdsPcmPlanFinishList" statementType="STATEMENT">
+		select * FROM mds_procurement_plan  where ${propertyName} = '${value}'
+	</select>
+</mapper>

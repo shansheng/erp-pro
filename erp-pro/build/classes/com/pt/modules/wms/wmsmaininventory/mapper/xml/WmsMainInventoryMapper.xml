@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.wms.wmsmaininventory.mapper.WmsMainInventoryMapper">
+    
+	<sql id="wmsMainInventoryColumns">
+		a.id AS "id",
+		a.item_id AS "itemId",
+		a.current_onhand_qty AS "currentOnhandQty",
+		a.column1 AS "column1",
+		a.column2 AS "column2",
+		a.column3 AS "column3",
+		a.column4 AS "column4",
+		a.column5 AS "column5",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		b.item_code AS "itemCode",
+		b.item_name AS "itemName",
+		b.NORMAL_FIELD AS "normalField",
+		b.MODEL_NUM AS "modelNum",
+		b.specs AS "specs"
+	</sql>
+	
+	<sql id="wmsMainInventoryJoins">
+		left join MDS_ITEM b on b.id=a.item_id
+	</sql>
+	
+    
+	<select id="get" resultType="WmsMainInventory" >
+		SELECT 
+			<include refid="wmsMainInventoryColumns"/>
+		FROM wms_main_inventory a
+		<include refid="wmsMainInventoryJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	<select id="getByItem" resultType="WmsMainInventory" >
+		SELECT 
+			<include refid="wmsMainInventoryColumns"/>
+		FROM wms_main_inventory a
+		<include refid="wmsMainInventoryJoins"/>
+		WHERE a.item_id = #{itemId}
+	</select>
+	<select id="getByItemId" resultType="WmsMainInventory" >
+		SELECT 
+			<include refid="wmsMainInventoryColumns"/>
+		FROM wms_main_inventory a
+		<include refid="wmsMainInventoryJoins"/>
+		WHERE a.item_id = #{id}
+	</select>
+	
+	<select id="findList" resultType="WmsMainInventory" >
+		SELECT 
+			<include refid="wmsMainInventoryColumns"/>
+		FROM wms_main_inventory a
+		<include refid="wmsMainInventoryJoins"/>
+		<where>
+			
+			${dataScope}
+			and a.current_onhand_qty > 0
+			<if test="itemCode != null and itemCode != ''">
+				AND b.item_code LIKE 
+					<if test="dbName == 'oracle'">'%'||#{itemCode}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{itemCode}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{itemCode},'%')</if>
+			</if>
+			<if test="itemName != null and itemName != ''">
+				AND b.item_name LIKE 
+					<if test="dbName == 'oracle'">'%'||#{itemName}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{itemName}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{itemName},'%')</if>
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="WmsMainInventory" >
+		SELECT 
+			<include refid="wmsMainInventoryColumns"/>
+		FROM wms_main_inventory a
+		<include refid="wmsMainInventoryJoins"/>
+		<where>
+			
+			${dataScope}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO wms_main_inventory(
+			id,
+			item_id,
+			current_onhand_qty,
+			create_by,
+			create_date,
+			update_by,
+			update_date
+		) VALUES (
+			#{id},
+			#{itemId},
+			#{currentOnhandQty},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE wms_main_inventory SET 	
+			current_onhand_qty = #{currentOnhandQty},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM wms_main_inventory
+		WHERE id = #{id}
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE wms_main_inventory SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="WmsMainInventory" statementType="STATEMENT">
+		select * FROM wms_main_inventory  where ${propertyName} = '${value}'
+	</select>
+	
+</mapper>

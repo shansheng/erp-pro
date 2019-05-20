@@ -1,0 +1,448 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.mds.mdsquota.mapper.MdsQuotaDetailMapper">
+    
+	<sql id="mdsQuotaDetailColumns">
+		a.id AS "id",
+		a.mds_quota_id AS "mdsQuotaId",
+		a.serial AS "serial",
+		a.mds_item_id AS "itemId",
+		a.item_code AS "itemCode",
+		a.item_name AS "itemName",
+		a.normal_field AS "normalField",
+		a.model_num AS "modelNum",
+		a.specs AS "specs",
+		a.quota AS "quota",
+		a.mds_unit_id AS "mdsUnitId",
+		a.classify AS "classify",
+		a.column2 AS "column2",
+		a.column3 AS "column3",
+		a.column4 AS "column4",
+		a.column5 AS "column5",
+		a.create_by AS "createBy.id",
+		c.name as "createBy.name", 	
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		A.mi_num as "miNum",
+		a.omi_num as "omiNum",
+		a.remarks AS "remarks",
+		a.is_version as "isVersion",
+		a.verify_by as "verifyBy",
+		a.add_procurement as "addProcurement",
+		a.is_add as "isAdd"
+	</sql>
+	
+	<sql id="mdsQuotaDetailJoins">
+		
+			LEFT JOIN mds_quota b ON b.id = a.mds_quota_id
+			LEFT JOIN SYS_USER c on c.id = a.create_by
+	</sql>
+	
+	  <select id="getByQuotaItemId" resultType="MdsQuotaDetail" >
+		SELECT 
+			<include refid="mdsQuotaDetailColumns"/>
+		FROM mds_quota_detail a
+		<include refid="mdsQuotaDetailJoins"/>
+		WHERE a.mds_quota_id = #{mdsQuotaId} and a.mds_item_id=#{itemId}
+	</select>
+	
+    <select id="getByQuotaId" resultType="MdsQuotaDetail" >
+		SELECT 
+			<include refid="mdsQuotaDetailColumns"/>
+		FROM mds_quota_detail a
+		<include refid="mdsQuotaDetailJoins"/>
+		WHERE a.mds_quota_id = #{mdsQuotaId}
+	</select>
+    
+    
+    
+	<select id="get" resultType="MdsQuotaDetail" >
+		SELECT 
+			<include refid="mdsQuotaDetailColumns"/>
+		FROM mds_quota_detail a
+		<include refid="mdsQuotaDetailJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="MdsQuotaDetail" >
+		SELECT 
+			<include refid="mdsQuotaDetailColumns"/>
+		FROM mds_quota_detail a
+		<include refid="mdsQuotaDetailJoins"/>
+		<where>
+			${dataScope}
+			<if test="mdsQuotaId != null and mdsQuotaId != ''">
+				AND a.mds_quota_id = #{mdsQuotaId}
+			</if>
+			<if test="classify != null and classify != ''">
+				AND a.classify = #{classify}
+			</if>
+			<if test="itemCode != null and itemCode != ''">
+				AND a.item_code like
+					<if test="dbName == 'oracle'">'%'||#{itemCode}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{itemCode}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{itemCode},'%')</if>
+			</if>
+			<if test="itemName != null and itemName != ''">
+				AND a.item_name like
+					<if test="dbName == 'oracle'">'%'||#{itemName}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{itemName}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{itemName},'%')</if>
+			</if>
+			<if test="remarks != null and remarks != ''">
+				AND a.remarks like
+					<if test="dbName == 'oracle'">'%'||#{remarks}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{remarks}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{remarks},'%')</if>
+			</if>
+			<if test="verifyBy != null and verifyBy != ''">
+				AND a.verify_by like
+					<if test="dbName == 'oracle'">'%'||#{verifyBy}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{verifyBy}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{verifyBy},'%')</if>
+			</if>
+			<if test="isVersion != null and isVersion != ''">
+				AND a.is_version like
+					<if test="dbName == 'oracle'">'%'||#{isVersion}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{isVersion}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{isVersion},'%')</if>
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.classify ASC,a.serial ASC,a.is_version ASC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<!-- 查询当前产品中所有未定版的物料 -->
+	<select id="findNotVersionList" resultType="MdsQuotaDetail" >
+		SELECT 
+			<include refid="mdsQuotaDetailColumns"/>
+		FROM mds_quota_detail a
+		<include refid="mdsQuotaDetailJoins"/>
+		<where>
+			is_version = '0'
+			${dataScope}
+			<if test="mdsQuotaId != null and mdsQuotaId != ''">
+				AND a.mds_quota_id = #{mdsQuotaId}
+			</if>
+		</where>
+	</select>
+	
+	<!-- 获取该产品下指定版本的所有物料 -->
+	<select id="findVersionList" resultType="MdsQuotaDetail" >
+		SELECT 
+			<include refid="mdsQuotaDetailColumns"/>
+		FROM mds_quota_detail a
+		<include refid="mdsQuotaDetailJoins"/>
+		<where>
+			is_version = '1'
+			${dataScope}
+			<if test="mdsQuotaId != null and mdsQuotaId != ''">
+				AND a.mds_quota_id = #{mdsQuotaId}
+			</if>
+			<if test="version != null and version != ''">
+				AND a.version = #{version}
+			</if>
+		</where>
+	</select>
+	
+	
+	<select id="findAllList" resultType="MdsQuotaDetail" >
+		SELECT 
+			<include refid="mdsQuotaDetailColumns"/>
+		FROM mds_quota_detail a
+		<include refid="mdsQuotaDetailJoins"/>
+		<where>
+			
+			${dataScope}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.create_date ASC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="getChildren" resultType="DictOfTree" >
+		SELECT
+			A .LABEL AS "dictName",
+			A .VALUE AS "value",
+			b ."num" as "num"
+		FROM
+			SYS_DICT_VALUE A
+		LEFT JOIN (
+			SELECT
+				classify,
+				COUNT (*) AS "num"
+			FROM
+				MDS_QUOTA_DETAIL
+			<where>	
+				MDS_QUOTA_ID = '${id}' 
+			</where>
+			GROUP BY
+				CLASSIFY
+		) b ON b.CLASSIFY = A ."VALUE"
+		WHERE
+			A .DICT_TYPE_ID = 'db47b57763d74cb2b515514c381314a7'
+		ORDER BY
+			case when b."num" is null then 1 else 0 end,A.sort asc
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO mds_quota_detail(
+			id,
+			mds_quota_id,
+			serial,
+			mds_item_id,
+			item_code,
+			item_name,
+			normal_field,
+			model_num,
+			specs,
+			quota,
+			mds_unit_id,
+			classify,
+			column2,
+			column3,
+			column4,
+			column5,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks,
+			verify_by,
+			ADD_PROCUREMENT,
+			is_add
+		) VALUES (
+			#{id},
+			#{mdsQuotaId},
+			#{serial},
+			#{itemId},
+			#{itemCode},
+			#{itemName},
+			#{normalField},
+			#{modelNum},
+			#{specs},
+			#{quota},
+			#{mdsUnitId},
+			#{classify},
+			#{column2},
+			#{column3},
+			#{column4},
+			#{column5},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remarks},
+			#{verifyBy},
+			#{addProcurement},
+			#{isAdd}
+		)
+	</insert>
+	
+	<update id="updateOmiNum">
+		UPDATE mds_quota_detail SET 	
+		omi_num=#{omiNum}
+		WHERE id = #{id}
+	</update>
+	
+	<update id="update">
+		UPDATE mds_quota_detail SET 	
+			mds_quota_id = #{mdsQuotaId},
+			serial = #{serial},
+			mds_item_id = #{itemId},
+			item_code = #{itemCode},
+			item_name = #{itemName},
+			normal_field = #{normalField},
+			model_num = #{modelNum},
+			specs = #{specs},
+			quota = #{quota},
+			mds_unit_id = #{mdsUnitId},
+			classify = #{classify},
+			column2 = #{column2},
+			column3 = #{column3},
+			column4 = #{column4},
+			column5 = #{column5},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remarks = #{remarks},
+			verify_by = #{verifyBy}
+		WHERE id = #{id}
+	</update>
+	
+	<!-- 批量修改物料的定版状态 -->
+	<update id="changVersion" parameterType="java.util.List">
+	  <foreach collection="list" item="MdsQuotaDetail"  index="index" open="begin" close=";end;" separator=";">
+	      update mds_quota_detail
+	      set
+			is_version=#{MdsQuotaDetail.isVersion}
+			where id = #{MdsQuotaDetail.id}
+	  </foreach>
+	</update>
+	
+	<!-- 批量修改物料的定版状态 -->
+	<update id="updateAddProcurement" parameterType="java.util.List">
+	  <foreach collection="list" item="MdsQuotaDetail"  index="index" open="begin" close=";end;" separator=";">
+	      update mds_quota_detail
+	      set
+			add_procurement=#{MdsQuotaDetail.addProcurement}
+			where id = #{MdsQuotaDetail.id}
+	  </foreach>
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM mds_quota_detail
+		<choose>
+			<when test="id !=null and id != ''">
+				WHERE id = #{id}
+			</when>
+		</choose>
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE mds_quota_detail SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		<choose>
+			<when test="id !=null and id != ''">
+				WHERE id = #{id}
+			</when>
+			<otherwise>
+				WHERE mds_quota_id = #{mdsQuotaId}
+			</otherwise>
+		</choose>
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="MdsQuotaDetail" statementType="STATEMENT">
+		select * FROM mds_quota_detail  where ${propertyName} = '${value}'
+	</select>
+	<!-- 编码验证查询 -->
+	<select id="getMdsItem" resultType="MdsItem" >
+	    SELECT 
+	    id AS "id",
+	    item_code AS "itemCode",
+	    item_name AS "itemName",
+	    specs AS "specs",
+	    model_num as "modelNum",
+	    model_num as "modelNum"
+	    FROM  mds_item 
+	    WHERE item_code=#{itemCode}
+	</select>
+	
+	<update id="updateList" parameterType="java.util.List">
+	  <foreach collection="list" item="MdsQuotaDetail"  index="index" open="begin" close=";end;" separator=";">
+	      update mds_quota_detail m
+	      set
+			m.serial=#{MdsQuotaDetail.serial},
+			m.quota=#{MdsQuotaDetail.quota},
+			m.mds_unit_id=#{MdsQuotaDetail.mdsUnitId},
+			m.remarks=#{MdsQuotaDetail.remarks},
+			m.update_by=#{MdsQuotaDetail.updateBy.id},
+			m.update_date=#{MdsQuotaDetail.updateDate}
+			where m.item_code=#{MdsQuotaDetail.itemCode}
+			and m.mds_quota_id=#{MdsQuotaDetail.mdsQuotaId}
+			and m.classify=#{MdsQuotaDetail.classify}
+			and m.remarks=#{MdsQuotaDetail.remarks}
+	  </foreach>
+	</update>
+	
+	<insert id="saveList" parameterType="java.util.List"> 
+	  INSERT INTO mds_quota_detail(
+	        id,
+			mds_quota_id,
+			serial,
+			mds_item_id,
+			item_code,
+			item_name,
+			normal_field,
+			model_num,
+			specs,
+			quota,
+			mds_unit_id,
+			classify,
+			verify_by,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks
+			)
+			<foreach collection="list" item="MdsQuotaDetail" index="index"  separator="UNION ALL" >
+			  (
+			  SELECT 
+			  #{MdsQuotaDetail.id},
+			  #{MdsQuotaDetail.mdsQuotaId},
+			  #{MdsQuotaDetail.serial},
+			  #{MdsQuotaDetail.itemId},
+			  #{MdsQuotaDetail.itemCode},
+			  #{MdsQuotaDetail.itemName},
+			  #{MdsQuotaDetail.normalField},
+			  #{MdsQuotaDetail.modelNum},
+			  #{MdsQuotaDetail.specs},
+			  #{MdsQuotaDetail.quota},
+			  #{MdsQuotaDetail.mdsUnitId},
+			  #{MdsQuotaDetail.classify},
+			    #{MdsQuotaDetail.verifyBy},
+			  #{MdsQuotaDetail.createBy.id},
+			  #{MdsQuotaDetail.createDate},
+			  #{MdsQuotaDetail.updateBy.id},
+			  #{MdsQuotaDetail.updateDate},
+			  #{MdsQuotaDetail.remarks}
+			  FROM dual
+			  )
+			</foreach>
+	</insert>
+	
+	<select id="getValue" resultType="DictValue">
+	   select A.Label AS "dictName",
+	   A.VALUE AS "value"
+	   FROM SYS_DICT_VALUE A
+	   WHERE A.LABEL =#{classify}
+	</select>
+	<!-- 查看技术定额物料分类 -->
+	<select id="getMdsClassify" resultType="String">
+	   select v.label
+	   from sys_dict_value v,sys_dict_type t
+	   where v.dict_type_id = t.id
+	   and t.type='mds_quota_classify'
+	</select>
+	
+	<select id="findLabel" resultType="DictValue">
+	  select * from sys_dict_value where label=#{label}
+	</select>
+	
+	<select id="findItemByMarkList" resultType="MdsItem">
+	  select
+	  	a.mds_item_id AS "id",
+		a.item_code AS "itemCode",
+		a.item_name AS "itemName",
+        c.item_version AS  "itemVersion"
+	  from mds_quota_detail a
+	  LEFT JOIN mds_quota b ON b.id = a.mds_quota_id 
+      left join mds_item c on c.id = a.mds_item_id
+	  where b.SYS_MARKET_LIST_ID=#{id}
+	</select>
+</mapper>
+
+
+
+
+
+
+
+

@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.work.workorderdispath.mapper.WorkOrderDispathMapper">
+    
+	<sql id="workOrderDispathColumns">
+		a.id AS "id",
+		a.sys_market_id AS "sysMarketId",
+		a.order_state AS "orderState",
+		a.item01 AS "item01",
+		a.item02 AS "item02",
+		a.item03 AS "item03",
+		a.item04 AS "item04",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remake AS "remake",
+		a.sys_market_list_id AS "sysMarketListId",
+		a.mds_item_id AS "mdsItemId",
+		F.CLIENT_ID AS "clientId",
+		c.client_name as "clientName",
+		E.ITEM_NAME AS "mdsItemName",
+		E.ITEM_CODE AS "mdsItemCode",
+		E.SPECS AS "mdsItemspecs",
+		E.MODEL_NUM AS "mdsItemmodelNum"
+	</sql>
+   <sql id="workOrderDispathColumn">
+     A . ID ,
+	A .sys_market_id ,
+	A .order_state ,
+	A .item01 ,
+	A .item02 ,
+	A .item03 ,
+	A .item04 ,
+	A .create_by ,
+	A .create_date ,
+	A .update_by ,
+	A .update_date ,
+	A .remake ,
+	A .sys_market_list_id ,
+	A .mds_item_id ,
+	F.CLIENT_ID ,
+	c.client_name ,
+	E .ITEM_NAME ,
+	E .ITEM_CODE ,
+	E .SPECS ,
+	E .MODEL_NUM 
+   </sql>
+	<sql id="workOrderDispathJoin">
+	LEFT JOIN SYS_MARKET F ON F.ID = A. SYS_MARKET_ID
+	LEFT JOIN CLIENT C ON C. ID = F.CLIENT_ID
+	LEFT JOIN MDS_ITEM E ON E . ID = a.MDS_ITEM_ID
+	</sql>
+	<sql id="workOrderDispathJoins">
+	LEFT JOIN SYS_MARKET F ON F.ID = A. SYS_MARKET_ID
+	LEFT JOIN MDS_QUOTA Q ON Q.SYS_MARKET_ID = A. SYS_MARKET_ID
+	LEFT JOIN MDS_QUOTA_DETAIL QD ON Q.ID = QD.MDS_QUOTA_ID
+	LEFT JOIN CLIENT C ON C. ID = F.CLIENT_ID
+	LEFT JOIN MDS_ITEM E ON E . ID = a.MDS_ITEM_ID
+	</sql>
+	
+    
+	<select id="get" resultType="WorkOrderDispath">
+		SELECT 
+			<include refid="workOrderDispathColumns"/>
+		FROM work_order_son a
+		<include refid="workOrderDispathJoin"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="WorkOrderDispath" >
+		SELECT 
+			<include refid="workOrderDispathColumns"/>
+		FROM work_order_son a
+		<include refid="workOrderDispathJoins"/>
+		<where>
+			a.order_state='1' AND QD.IS_VERSION='1'
+			${dataScope}
+			<if test="clientId != null and clientId != ''">
+				AND F.CLIENT_ID = #{clientId}
+			</if>
+			<if test="mdsItemCode != null and mdsItemCode != ''">
+				AND E.ITEM_CODE like
+					<if test="dbName == 'oracle'">'%'||#{mdsItemCode}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{mdsItemCode}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{mdsItemCode},'%')</if>
+			</if>
+			<if test="mdsItemName != null and mdsItemName != ''">
+				AND E.ITEM_NAME like
+					<if test="dbName == 'oracle'">'%'||#{mdsItemName}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{mdsItemName}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{mdsItemName},'%')</if>
+			</if>
+		</where>
+		group by
+		<include refid="workOrderDispathColumn"/>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="WorkOrderDispath" >
+		SELECT 
+			<include refid="workOrderDispathColumns"/>
+		FROM work_order_son a
+		<include refid="workOrderDispathJoins"/>
+		<where>
+			
+			${dataScope}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO work_order_son(
+			id,
+			sys_market_id,
+			order_state,
+			item01,
+			item02,
+			item03,
+			item04,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remake,
+			sys_market_list_id,
+			mds_item_id
+		) VALUES (
+			#{id},
+			#{sysMarketId},
+			#{orderState},
+			#{item01},
+			#{item02},
+			#{item03},
+			#{item04},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remake},
+			#{sysMarketListId},
+			#{mdsItemId}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE work_order_son SET 	
+			sys_market_id = #{sysMarketId},
+			order_state = #{orderState},
+			item01 = #{item01},
+			item02 = #{item02},
+			item03 = #{item03},
+			item04 = #{item04},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remake = #{remake},
+			sys_market_list_id = #{sysMarketListId},
+			mds_item_id = #{mdsItemId}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM work_order_son
+		WHERE id = #{id}
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE work_order_son SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="WorkOrderDispath" statementType="STATEMENT">
+		select * FROM work_order_son  where ${propertyName} = '${value}'
+	</select>
+	
+</mapper>

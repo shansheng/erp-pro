@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.wms.wmsmaininventory.mapper.WmsMainRecordMapper">
+    
+	<sql id="wmsMainRecordColumns">
+		a.id AS "id",
+		a.item_id AS "itemId",
+		a.qty AS "qty",
+		decode(a.state,1,'入库','出库') AS "state",
+		a.create_by AS "createBy.id",
+		d.name AS "createBy.name",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remark AS "remark",
+		c.item_code AS "itemCode",
+		c.item_name AS "itemName",
+		c.NORMAL_FIELD AS "normalField",
+		c.MODEL_NUM AS "modelNum",
+		c.specs AS "specs",
+		mp.supplier_name AS "supplierName"
+	</sql>
+	
+	<sql id="wmsMainRecordJoins">
+			LEFT JOIN wms_main_inventory b ON b.item_id = a.item_id
+			left join MDS_ITEM c on c.id=a.item_id
+			left join SYS_USER d on d.id = a.create_by
+			left join mds_arrival_checkout mc on mc.id = a.associated_id
+		    left join mds_procurement_plan mp on mp.id = mc.mds_procurment_plan_id
+	</sql>
+	
+    
+	<select id="get" resultType="WmsMainRecord" >
+		SELECT 
+			<include refid="wmsMainRecordColumns"/>
+		FROM wms_main_record a
+		<include refid="wmsMainRecordJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="WmsMainRecord" >
+		SELECT 
+			<include refid="wmsMainRecordColumns"/>
+		FROM wms_main_record a
+		<include refid="wmsMainRecordJoins"/>
+		<where>
+			
+			${dataScope}
+			<if test="itemId != null and itemId != ''">
+				AND a.item_id LIKE 
+					<if test="dbName == 'oracle'">'%'||#{itemId}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{itemId}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{itemId},'%')</if>
+			</if>
+			<!-- <if test="id != null and id != ''">
+				AND a.id LIKE 
+					<if test="dbName == 'oracle'">'%'||#{id}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{id}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{id},'%')</if>
+			</if>
+			<if test="state != null and state != ''">
+				AND a.state = #{state}
+			</if>
+			<if test="createBy != null and createBy.id != null and createBy.id != ''">
+				AND a.create_by = #{createBy.id}
+			</if>
+			<if test="beginCreateDate != null and endCreateDate != null and beginCreateDate != '' and endCreateDate != ''">
+				AND a.create_date BETWEEN #{beginCreateDate} AND #{endCreateDate}
+			</if> -->
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.create_date ASC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="WmsMainRecord" >
+		SELECT 
+			<include refid="wmsMainRecordColumns"/>
+		FROM wms_main_record a
+		<include refid="wmsMainRecordJoins"/>
+		<where>
+			
+			${dataScope}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.create_date ASC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO wms_main_record(
+			id,
+			item_id,
+			qty,
+			state,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			associated,
+			associated_id
+		) VALUES (
+			#{id},
+			#{itemId},
+			#{qty},
+			#{state},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{associated},
+			#{associatedId}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE wms_main_record SET
+			qty = #{qty},
+			state = #{state},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remark = #{remark}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM wms_main_record
+		<choose>
+			<when test="id !=null and id != ''">
+				WHERE id = #{id}
+			</when>
+			<otherwise>
+				WHERE item_id = #{itemId}
+			</otherwise>
+		</choose>
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE wms_main_record SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		<choose>
+			<when test="id !=null and id != ''">
+				WHERE id = #{id}
+			</when>
+			<otherwise>
+				WHERE item_id = #{itemId}
+			</otherwise>
+		</choose>
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="WmsMainRecord" statementType="STATEMENT">
+		select * FROM wms_main_record  where ${propertyName} = '${value}'
+	</select>
+	
+</mapper>

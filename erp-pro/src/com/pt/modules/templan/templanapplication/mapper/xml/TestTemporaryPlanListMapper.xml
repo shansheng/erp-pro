@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.templan.templanapplication.mapper.TestTemporaryPlanListMapper">
+    
+	<sql id="testTemporaryPlanListColumns">
+		a.id AS "id",
+		a.temporary_plan_id AS "temporaryPlanId",
+		a.mds_item_id AS "itemId",
+		a.apply_number AS "applyNumber",
+		a.applyoval_number AS "applyovalNumber",
+		a.demand_date AS "demandDate",
+		a.item_01 AS "item01",
+		a.item_02 AS "item02",
+		a.item_03 AS "item03",
+		a.item_04 AS "item04",
+		a.item_05 AS "item05",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag",
+		mi.item_code AS "itemCode",
+		mi.item_name AS "itemName"
+	</sql>
+	
+	<sql id="testTemporaryPlanListJoins">
+		
+			LEFT JOIN test_temporary_plan b ON b.id = a.temporary_plan_id
+			LEFT JOIN mds_item mi On a.mds_item_id = mi.id
+	</sql>
+	
+    
+	<select id="get" resultType="TestTemporaryPlanList" >
+		SELECT 
+			<include refid="testTemporaryPlanListColumns"/>
+		FROM test_temporary_plan_list a
+		<include refid="testTemporaryPlanListJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="TestTemporaryPlanList" >
+		SELECT 
+			<include refid="testTemporaryPlanListColumns"/>
+		FROM test_temporary_plan_list a
+		<include refid="testTemporaryPlanListJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			${dataScope}
+			<if test="temporaryPlanId != null and temporaryPlanId != ''">
+				AND a.temporary_plan_id = #{temporaryPlanId}
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.create_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="TestTemporaryPlanList" >
+		SELECT 
+			<include refid="testTemporaryPlanListColumns"/>
+		FROM test_temporary_plan_list a
+		<include refid="testTemporaryPlanListJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			${dataScope}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.create_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO test_temporary_plan_list(
+			id,
+			temporary_plan_id,
+			mds_item_id,
+			apply_number,
+			applyoval_number,
+			demand_date,
+			item_01,
+			item_02,
+			item_03,
+			item_04,
+			item_05,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks,
+			del_flag
+		) VALUES (
+			#{id},
+			#{temporaryPlanId},
+			#{itemId},
+			#{applyNumber},
+			'0',
+			#{demandDate},
+			#{item01},
+			#{item02},
+			#{item03},
+			#{item04},
+			#{item05},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remarks},
+			#{delFlag}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE test_temporary_plan_list SET 	
+			temporary_plan_id = #{temporaryPlanId},
+			mds_item_id = #{itemId},
+			apply_number = #{applyNumber},
+			applyoval_number = #{applyovalNumber},
+			demand_date = #{demandDate},
+			item_01 = #{item01},
+			item_02 = #{item02},
+			item_03 = #{item03},
+			item_04 = #{item04},
+			item_05 = #{item05},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remarks = #{remarks}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM test_temporary_plan_list
+		<choose>
+			<when test="id !=null and id != ''">
+				WHERE id = #{id}
+			</when>
+			<otherwise>
+				WHERE temporary_plan_id = #{temporaryPlanId}
+			</otherwise>
+		</choose>
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE test_temporary_plan_list SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		<choose>
+			<when test="id !=null and id != ''">
+				WHERE id = #{id}
+			</when>
+			<otherwise>
+				WHERE temporary_plan_id = #{temporaryPlanId}
+			</otherwise>
+		</choose>
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="TestTemporaryPlanList" statementType="STATEMENT">
+		select * FROM test_temporary_plan_list  where ${propertyName} = '${value}'
+	</select>
+	
+</mapper>

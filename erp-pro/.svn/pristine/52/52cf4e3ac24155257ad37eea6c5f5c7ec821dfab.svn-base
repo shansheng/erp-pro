@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.sys.systemmarket.mapper.SysTemMarketMapper">
+    
+	<sql id="sysMarketColumns">
+			a.id AS "id",
+		a.client_id AS "clientId",
+		a.contract_no AS "contractNo",
+		a.contract_date AS "contractDate",
+		a.delivery_date AS "deliveryDate",
+		a.contract_class AS "contractClass",
+		a.money AS "money",
+		a.payment_method AS "paymentMethod",
+		a.principal AS "principal",
+		a.contract_status AS "contractStatus",
+		a.assign AS "assign",
+		a.assign_date AS "assignDate",
+		a.shipments AS "shipments",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.milestone_status as "milestoneStatus",
+		a.ship_show as "shipShow",
+		a.remake as "remake",
+		a.debt as "debt",
+		a.total_pay as "totalPay",
+		c.client_name as "clientName",
+		c.client_no as "clientNo",
+		su.name as "principalName"
+		
+		
+		
+	</sql>
+	
+	<sql id="sysMarketJoins">
+		
+		left join client c on c.id=a.client_id
+		left join sys_user su on su.id=a.principal
+		
+	</sql>
+	
+    
+	<select id="get" resultType="SysMarket" >
+		SELECT 
+			<include refid="sysMarketColumns"/>
+		FROM sys_market a
+		<include refid="sysMarketJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="SysMarket" >
+		SELECT 
+			<include refid="sysMarketColumns"/>
+		FROM sys_market a
+		<include refid="sysMarketJoins"/>
+		<where>
+		contract_class='1'
+			
+			${dataScope}
+			<if test="clientId != null and clientId != ''">
+				AND a.client_id = #{clientId}
+			</if>
+			
+			<if test="contractNo != null and contractNo != ''">
+				AND a.contract_no LIKE 
+					<if test="dbName == 'oracle'">'%'||#{contractNo}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{contractNo}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{contractNo},'%')</if>
+			</if>
+			<if test="beginContractDate != null and endContractDate != null and beginContractDate != '' and endContractDate != ''">
+				AND a.contract_date BETWEEN #{beginContractDate} AND #{endContractDate}
+			</if>
+			<if test="principal != null and principal != ''">
+				AND a.principal = #{principal}
+			</if>
+			<if test="contractStatus != null and contractStatus != ''">
+				AND a.contract_status = #{contractStatus}
+			</if>
+			<if test="shipments != null and shipments != ''">
+				AND a.shipments = #{shipments}
+			</if>
+		</where>
+		
+	</select>
+	
+	<select id="findAllList" resultType="SysMarket" >
+		SELECT 
+			<include refid="sysMarketColumns"/>
+		FROM sys_market a
+		<include refid="sysMarketJoins"/>
+		<where>
+			
+			${dataScope}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO sys_market(
+			id,
+			client_id,
+			
+			contract_no,
+			contract_date,
+			delivery_date,
+			contract_class,
+			money,
+			payment_method,
+			principal,
+			contract_status,
+			assign,
+			assign_date,
+			create_by,
+			create_date,
+			milestone_status,
+			milestone_statuss,
+			remake,
+			shipments,
+			debt,
+			total_pay,
+			is_kp,
+			kp_date
+		) VALUES (
+			#{id},
+			#{clientId},
+			#{contractNo},
+			#{contractDate},
+			#{deliveryDate},
+			'1',
+			#{money},
+			#{paymentMethod},
+			#{principal},
+			#{contractStatus},
+			'0',
+			#{assignDate},
+			#{createBy.id},
+			#{createDate},
+			'1',
+			'未编制',
+			#{remake},
+			#{shipments},
+			#{debt},
+			'0',
+			'0',
+			#{kpDate}
+		)
+	</insert>
+	
+	
+	
+	
+	
+	
+	<update id="update">
+		UPDATE sys_market SET 	
+			client_id = #{clientId},
+			contract_no = #{contractNo},
+			contract_date = #{contractDate},
+			delivery_date = #{deliveryDate},
+			contract_class = #{contractClass},
+			money = #{money},
+			payment_method = #{paymentMethod},
+			principal = #{principal},
+			contract_status = #{contractStatus},
+			assign = #{assign},
+			assign_date = #{assignDate},
+			debt=#{debt},
+			total_pay=#{totalPay},
+			
+			shipments = #{shipments}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM sys_market
+		WHERE id = #{id}
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE sys_market SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="SysMarket" statementType="STATEMENT">
+		select * FROM sys_market  where ${propertyName} = '${value}'
+	</select>
+	
+</mapper>

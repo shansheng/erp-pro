@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.mds.mdsReplaceItem.mapper.MdsReplaceItemMapper">
+    
+	<sql id="mdsReplaceItemColumns">
+		a.id AS "id",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remarks AS "remarks",
+		a.del_flag AS "delFlag",
+		a.mds_procurement_plan_id AS "mdsProcurementPlanId",
+		a.before_replace_item_id AS "beforeReplaceItemId",
+		a.before_replace_item_name AS "beforeReplaceItemName",
+		a.item_id AS "itemId",
+		a.item_name AS "itemName",
+		a.after_replace_purase_number AS "afterReplacePuraseNumber",
+		a.approve_by AS "approveBy",
+		a.approve_date AS "approveDate",
+		a.replace_state AS "replaceState",
+		a.purchase_mode AS "purchaseMode",
+		m.classify AS "classify",
+		m.item_code AS "itemCode",
+		m.normal_field AS "normalField",
+		m.modelnm AS "modelnm",
+		m.specs AS "specs",
+		m.purchase_amount AS "purchaseAmount",
+		m.required_date AS "requiredDate",
+		m.from_id AS "fromId",
+		m.particulars AS "particulars",
+		m.source_type AS "sourceType"
+	</sql>
+	<sql id="mdsProcurementPlanColumns2">
+		a.id AS "id",
+		a.mds_item_id AS "mdsItemId",
+		a.classify AS "classify",
+		a.item_code AS "itemCode",
+		a.item_name AS "itemName",
+		a.normal_field AS "normalField",
+		a.modelnm AS "modelnm",
+		a.specs AS "specs",
+		a.purchase_amount AS "purchaseAmount",
+		a.required_date AS "requiredDate",
+		a.state AS "state",
+		a.procurement_way AS "procurementWay",
+		a.from_id AS "fromId",
+		a.source_type AS "sourceType",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.particulars AS "particulars"
+	</sql>
+	<sql id="mdsReplaceItemJoins">
+		left join MDS_PROCUREMENT_PLAN_V m on a.mds_procurement_plan_id = m.id
+	</sql>
+	
+	<select id="findProList" resultType="MdsProcurementPlan" >
+		SELECT 
+			<include refid="mdsProcurementPlanColumns2"/>
+		FROM MDS_PROCUREMENT_PLAN_V a
+		<where>
+		   a.state = '25' or a.state = '30'
+		   and a.arrivalnum='0'
+			${dataScope}
+			<if test="itemCode != null and itemCode != ''">
+				AND a.item_code LIKE 
+					<if test="dbName == 'oracle'">'%'||#{itemCode}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{itemCode}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{itemCode},'%')</if>
+			</if>
+			<if test="itemName != null and itemName != ''">
+				AND a.item_name LIKE 
+					<if test="dbName == 'oracle'">'%'||#{itemName}||'%'</if>
+					<if test="dbName == 'mssql'">'%'+#{itemName}+'%'</if>
+					<if test="dbName == 'mysql'">concat('%',#{itemName},'%')</if>
+			</if>
+			<if test="beginRequiredDate != null and endRequiredDate != null and beginRequiredDate != '' and endRequiredDate != ''">
+				AND a.required_date BETWEEN #{beginRequiredDate} AND #{endRequiredDate}
+			</if>
+			<choose>
+			<when test="state != null and state != ''">
+				AND a.state = #{state}
+			</when>
+			
+			</choose>
+			<if test="procurementWay != null and procurementWay != ''">
+				AND a.procurement_way = #{procurementWay}
+			</if>
+		</where>
+	<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy},a.update_date DESC
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+    
+	<select id="get" resultType="MdsReplaceItem" >
+		SELECT 
+			<include refid="mdsReplaceItemColumns"/>
+		FROM mds_replace_item a
+		<include refid="mdsReplaceItemJoins"/>
+		WHERE a.id = #{id}
+	</select>
+	
+	<select id="findList" resultType="MdsReplaceItem" >
+		SELECT 
+			<include refid="mdsReplaceItemColumns"/>
+		FROM mds_replace_item a
+		<include refid="mdsReplaceItemJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			${dataScope}
+			<if test="beforeReplaceItemName != null and beforeReplaceItemName != ''">
+				AND a.before_replace_item_name LIKE
+				<if test="dbName == 'oracle'">'%'||#{before_replace_item_name}||'%'</if>
+				<if test="dbName == 'mssql'">'%'+#{before_replace_item_name}+'%'</if>
+				<if test="dbName == 'mysql'">concat('%',#{before_replace_item_name},'%')</if>
+			</if>
+			<if test="itemName != null and itemName != ''">
+				AND a.item_name LIKE
+				<if test="dbName == 'oracle'">'%'||#{itemName}||'%'</if>
+				<if test="dbName == 'mssql'">'%'+#{itemName}+'%'</if>
+				<if test="dbName == 'mysql'">concat('%',#{itemName},'%')</if>
+			</if>
+			<if test="replaceState != null and replaceState != ''">
+				AND a.replace_state = #{replaceState}
+			</if>
+			<if test="purchaseMode != null and purchaseMode != ''">
+				AND a.purchase_mode = #{purchaseMode}
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	<!-- 历史查询 -->
+	<select id="findReplaceList" resultType="MdsReplaceItem">
+	     SELECT 
+			<include refid="mdsReplaceItemColumns"/>
+		FROM mds_replace_item_v a
+		<include refid="mdsReplaceItemJoins"/>
+		<where>
+			and a.del_flag = #{DEL_FLAG_NORMAL}
+			${dataScope}
+			<if test="beforeReplaceItemName != null and beforeReplaceItemName != ''">
+				AND a.before_replace_item_name LIKE
+				<if test="dbName == 'oracle'">'%'||#{before_replace_item_name}||'%'</if>
+				<if test="dbName == 'mssql'">'%'+#{before_replace_item_name}+'%'</if>
+				<if test="dbName == 'mysql'">concat('%',#{before_replace_item_name},'%')</if>
+			</if>
+			<if test="itemName != null and itemName != ''">
+				AND a.item_nameLIKE
+				<if test="dbName == 'oracle'">'%'||#{itemName}||'%'</if>
+				<if test="dbName == 'mssql'">'%'+#{itemName}+'%'</if>
+				<if test="dbName == 'mysql'">concat('%',#{itemName},'%')</if>
+			</if>
+			<if test="replaceState != null and replaceState != ''">
+				AND a.replace_state = #{replaceState}
+			</if>
+			<if test="purchaseMode != null and purchaseMode != ''">
+				AND a.purchase_mode = #{purchaseMode}
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.approve_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="MdsReplaceItem" >
+		SELECT 
+			<include refid="mdsReplaceItemColumns"/>
+		FROM mds_replace_item a
+		<include refid="mdsReplaceItemJoins"/>
+		<where>
+			a.del_flag = #{DEL_FLAG_NORMAL}
+			${dataScope}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+		INSERT INTO mds_replace_item(
+			id,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remarks,
+			del_flag,
+			mds_procurement_plan_id,
+			before_replace_item_id,
+			before_replace_item_name,
+			item_id,
+			item_name,
+			after_replace_purase_number,
+			approve_by,
+			approve_date,
+			replace_state,
+			purchase_mode
+		) VALUES (
+			#{id},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remarks},
+			#{delFlag},
+			#{mdsProcurementPlanId},
+			#{beforeReplaceItemId},
+			#{beforeReplaceItemName},
+			#{itemId},
+			#{itemName},
+			#{afterReplacePuraseNumber},
+			#{approveBy},
+			#{approveDate},
+			#{replaceState},
+			#{purchaseMode}
+		)
+	</insert>
+	
+	<update id="update">
+		UPDATE mds_replace_item SET 	
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remarks = #{remarks},
+			mds_procurement_plan_id = #{mdsProcurementPlanId},
+			before_replace_item_id = #{beforeReplaceItemId},
+			before_replace_item_name = #{beforeReplaceItemName},
+			item_id = #{itemId},
+			item_name = #{itemName},
+			after_replace_purase_number = #{afterReplacePuraseNumber},
+			approve_by = #{approveBy},
+			approve_date = #{approveDate},
+			replace_state = #{replaceState},
+			purchase_mode = #{purchaseMode}
+		WHERE id = #{id}
+	</update>
+	<update id="updateMdsPro">
+	    UPDATE mds_procurement_plan SET
+	          mds_item_id=#{mdsItemId},
+			  classify=#{classify},
+			  item_code=#{itemCode},
+			  item_name=#{itemName},
+			  normal_field=#{normalField},
+			  modelnm=#{modelnm},
+			  specs=#{specs},
+			  purchase_amount=#{purchaseAmount}
+	   WHERE id=#{id}
+	</update>
+	<update id="updateReplaceState">
+	   update mds_replace_item set
+	   replace_state = #{replaceState},
+	   approve_by = #{approveBy},
+	   approve_date = #{approveDate}
+	   where id=#{id}
+	</update>
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM mds_replace_item
+		WHERE id = #{id}
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE mds_replace_item SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="MdsReplaceItem" statementType="STATEMENT">
+		select * FROM mds_replace_item  where ${propertyName} = '${value}'
+	</select>
+	
+	<select id="findById" resultType="MdsReplaceItem">
+	   select *
+		FROM mds_replace_item a
+		where a.mds_procurement_plan_id = #{mdsProcurementPlanId}
+	</select>
+</mapper>

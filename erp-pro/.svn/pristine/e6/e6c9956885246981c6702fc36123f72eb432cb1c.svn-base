@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pt.modules.work.workordersynthesize.mapper.WorkOrderSynthesizeMapper">
+    
+	<sql id="workOrderSonColumns">
+		a.id AS "id",
+		a.sys_market_id AS "sysMarketId",
+		a.order_state AS "orderState",
+		A.work_order_id as "workOrderId",
+		a.item01 AS "item01",
+		a.item02 AS "item02",
+		a.item03 AS "item03",
+		a.item04 AS "item04",
+		a.create_by AS "createBy.id",
+		a.create_date AS "createDate",
+		a.update_by AS "updateBy.id",
+		a.update_date AS "updateDate",
+		a.remake AS "remake",
+		a.sys_market_list_id AS "sysMarketListId",
+		a.mds_item_id AS "mdsItemId",
+		a.finish_sche as "finishSche",
+		c.client_name as "clientName",
+		F.contract_no as "contractNo",
+		F.CLIENT_ID AS "clientId",
+		F.contract_date AS "contractDate",
+		F.delivery_date AS "deliveryDate",
+		F.contract_status AS "contractStatus",
+		E.ITEM_NAME AS "mdsItemName",
+		E.ITEM_CODE AS "mdsItemCode",
+		E.SPECS AS "mdsItemspecs",
+		E.MODEL_NUM AS "mdsItemmodelNum",
+		mq.sys_market_id AS "mqSysMarketId",
+		mq.mds_item_id AS "mqMdsItemId",
+		mq.update_date AS "quotaDate",
+		mq.state AS "mdsQuotaState",
+		mb.state as "bomState",
+		mb.update_date as "bomDate",
+		mpp.state AS "mdsProcurementPlanState",
+		mpp.update_date as "mdsProcurementPlanDate",
+		mpp.purchase_amount as "purchaseAmount",
+		mpp.arrivalnum as "arrivalnum",
+		F.shipments as "shipments",
+		f.shipments_date as "shipmentsDate",
+		mac.state as "arrivalState"
+	
+	</sql>
+	
+	<sql id="workOrderSonJoins"> 
+
+	
+<!-- 	left join mds_procurement_plan mpp on (mpp.from_id=A.SYS_MARKET_ID) and mpp.source_type='项目录入' -->
+
+	left join sys_market_list s on s.sys_market_id = a.sys_market_id
+	left join mds_procurement_plan mpp on (mpp.from_id=A.SYS_MARKET_ID) and mpp.source_type='项目录入'
+
+	left join mat_bom mb on (mb.sys_market_id=a.sys_market_id) and mb.mds_item_id=a.mds_item_id
+	left join mds_quota mq on (mq.sys_market_id=A.SYS_MARKET_ID) and mq.mds_item_id=a.mds_item_id
+	LEFT JOIN SYS_MARKET F ON F.ID = A. SYS_MARKET_ID
+	LEFT JOIN CLIENT C ON C. ID = F.CLIENT_ID
+	LEFT JOIN MDS_ITEM E ON E . ID = a.MDS_ITEM_ID
+	 left join mds_arrival_checkout mac on mac.mds_procurment_plan_id=mpp.id
+	</sql>
+	
+    
+	<select id="get" resultType="WorkOrderSynthesize" >
+		SELECT 
+			<include refid="workOrderSonColumns"/>
+		FROM work_order_son a
+		<include refid="workOrderSonJoins"/>
+		WHERE a.id = #{id}
+	</select>
+
+	
+	<select id="findList" resultType="WorkOrderSynthesize" >
+		SELECT 
+			<include refid="workOrderSonColumns"/>
+		FROM work_order_son a
+		<include refid="workOrderSonJoins"/>
+		<where>
+			
+			${dataScope}
+				<if test="clientId != null and clientId != ''">
+				AND F.CLIENT_ID = #{clientId}
+			</if>
+		</where>
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="findAllList" resultType="WorkOrderSynthesize" >
+		SELECT 
+			<include refid="workOrderSonColumns"/>
+		FROM work_order_son a
+		<include refid="workOrderSonJoins"/>
+		<where>
+			
+			${dataScope}
+		</where>		
+		<choose>
+			<when test="page !=null and page.orderBy != null and page.orderBy != ''">
+				ORDER BY ${page.orderBy}
+			</when>
+			<otherwise>
+				ORDER BY a.update_date DESC
+			</otherwise>
+		</choose>
+	</select>
+	
+	<insert id="insert">
+	 <selectKey keyProperty="id" resultType="String" order="BEFORE">
+             select sys_guid() from dual
+        </selectKey>
+		INSERT INTO work_order_son(
+			id,
+			sys_market_id,
+			order_state,
+			work_order_id,
+			item01,
+			item02,
+			item03,
+			item04,
+			create_by,
+			create_date,
+			update_by,
+			update_date,
+			remake,
+			sys_market_list_id,
+			mds_item_id,
+			finish_sche
+		) VALUES (
+			#{id},
+			#{sysMarketId},
+			#{orderState},
+			#{workOrderId},
+			#{item01},
+			#{item02},
+			#{item03},
+			#{item04},
+			#{createBy.id},
+			#{createDate},
+			#{updateBy.id},
+			#{updateDate},
+			#{remake},
+			#{sysMarketListId},
+			#{mdsItemId},
+			'0%'
+		)
+	</insert>
+		<update id="disPatchById">
+		UPDATE work_order_son SET 	
+			order_state = '1',
+			update_by = #{updateBy.id},
+			update_date = #{updateDate}
+			
+		WHERE id = #{id}
+	</update>
+	<update id="updates">
+		UPDATE work_order_son SET 	
+			item01 = #{item01},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate}		
+		WHERE id = #{id}
+	</update>
+	
+	
+	<update id="update">
+		UPDATE work_order_son SET 	
+			sys_market_id = #{sysMarketId},
+			order_state = #{orderState},
+			item01 = #{item01},
+			item02 = #{item02},
+			item03 = #{item03},
+			item04 = #{item04},
+			update_by = #{updateBy.id},
+			update_date = #{updateDate},
+			remake = #{remake},
+			sys_market_list_id = #{sysMarketListId},
+			mds_item_id = #{mdsItemId}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!--物理删除-->
+	<update id="delete">
+		DELETE FROM work_order_son
+		WHERE id = #{id}
+	</update>
+	
+	<!--逻辑删除-->
+	<update id="deleteByLogic">
+		UPDATE work_order_son SET 
+			del_flag = #{DEL_FLAG_DELETE}
+		WHERE id = #{id}
+	</update>
+	
+	
+	<!-- 根据实体名称和字段名称和字段值获取唯一记录 -->
+	<select id="findUniqueByProperty" resultType="WorkOrderSynthesize" statementType="STATEMENT">
+		select * FROM work_order_son  where ${propertyName} = '${value}'
+	</select>
+	
+</mapper>
